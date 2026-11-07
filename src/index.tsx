@@ -8,8 +8,12 @@ import TestPage from './test';
 import { RegisterApi } from './api';
 import z from 'zod';
 import { zValidator } from '@hono/zod-validator';
+import { bodyLimit } from 'hono/body-limit';
 
 const app = new Hono<Env>()
+
+app.use("/*", bodyLimit({ maxSize: 1024 })); // in KiB
+
 
 RegisterApi(app)
 
@@ -17,7 +21,7 @@ RegisterApi(app)
 const SkinSchema = z.object({
     title: z.string().default('消息推送'),
     message: z.string().default('无告警信息'),
-    date: z.date().optional(),
+    date: z.number().nonnegative().optional(),
 });
 
 
@@ -32,11 +36,13 @@ const SkinSchema = z.object({
 app.get('/skin', renderer, zValidator('query', SkinSchema), async (c) => {
     c.set('pageTitle', '消息推送');
     const params = c.req.valid('query');
+
+
     return c.render(
         <Skin
             title={params.title || '消息推送'}
-            message={params.message || '无告警信息'}
-            date={params.date}
+            message={params.message || '无信息'}
+            date={params.date ? new Date(params.date) : undefined}
         />
     );
 });
@@ -47,4 +53,3 @@ app.get('/test', auth_token, renderer, async (c) => {
 });
 
 export default app;
-

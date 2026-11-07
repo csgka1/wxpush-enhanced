@@ -70,14 +70,14 @@ async function sendWxMessage(
     }
     const params = {
         message: content,
-        date: getBeijingTime(),
+        date: Date.now().toString(),
         title: title
     } satisfies WxUrlParam;
 
     for (const [key, value] of Object.entries(params)) {
         messageUrl.searchParams.set(key, value)
-    }   
-    
+    }
+
 
     const response = await fetch(
         `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${encodeURIComponent(accessToken)}`,
