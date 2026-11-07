@@ -4,11 +4,7 @@ import { render, useRef, useState } from 'hono/jsx/dom'
 type TestFormValues = {
     title: string
     content: string
-    userid: string
-    appid: string
-    secret: string
-    template_id: string
-    base_url: string
+    channel: 'wechat' | 'wecom'
 }
 
 type TestFormProps = {
@@ -18,21 +14,13 @@ type TestFormProps = {
 const initialValues: TestFormValues = {
     title: '测试标题',
     content: '这是测试内容',
-    userid: '',
-    appid: '',
-    secret: '',
-    template_id: '',
-    base_url: ''
+    channel: 'wechat'
 }
 
 const emptyValues: TestFormValues = {
     title: '',
     content: '',
-    userid: '',
-    appid: '',
-    secret: '',
-    template_id: '',
-    base_url: ''
+    channel: 'wechat'
 }
 
 function TestForm({ token }: TestFormProps) {
@@ -43,7 +31,11 @@ function TestForm({ token }: TestFormProps) {
 
     const updateField = (name: keyof TestFormValues) => (event: Event) => {
         const field = event.currentTarget
-        if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+        if (
+            field instanceof HTMLInputElement ||
+            field instanceof HTMLTextAreaElement ||
+            field instanceof HTMLSelectElement
+        ) {
             setValues((currentValues) => ({
                 ...currentValues,
                 [name]: field.value
@@ -75,7 +67,7 @@ function TestForm({ token }: TestFormProps) {
         }
 
         try {
-            const response = await fetch('/api/wxsend', {
+            const response = await fetch('/api/send', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(payload)
@@ -94,7 +86,18 @@ function TestForm({ token }: TestFormProps) {
 
     return (
         <>
-            <form id="testForm" method="post" action="/api/wxsend" onSubmit={handleSubmit}>
+            <form id="testForm" method="post" action="/api/send" onSubmit={handleSubmit}>
+                <label for="channel">发送渠道 (channel)</label>
+                <select
+                    id="channel"
+                    name="channel"
+                    value={values.channel}
+                    onInput={updateField('channel')}
+                >
+                    <option value="wechat">微信公众号 (wechat)</option>
+                    <option value="wecom">企业微信群机器人 (wecom)</option>
+                </select>
+
                 <label for="title">标题 (title)</label>
                 <input
                     id="title"
@@ -104,59 +107,13 @@ function TestForm({ token }: TestFormProps) {
                     onInput={updateField('title')}
                 />
 
-                <label for="content">内容 (content)</label>
+                <label for="content">Markdown 内容 (content)</label>
                 <textarea
                     id="content"
                     name="content"
                     rows={4}
                     value={values.content}
                     onInput={updateField('content')}
-                />
-
-                <label for="userid">用户 ID (userid，可选，多用户用 | 分隔)</label>
-                <input
-                    id="userid"
-                    name="userid"
-                    type="text"
-                    placeholder="例如: OPENID1|OPENID2"
-                    value={values.userid}
-                    onInput={updateField('userid')}
-                />
-
-                <label for="appid">WX_APPID (可选，留空使用环境变量)</label>
-                <input
-                    id="appid"
-                    name="appid"
-                    type="text"
-                    value={values.appid}
-                    onInput={updateField('appid')}
-                />
-
-                <label for="secret">WX_SECRET (可选，留空使用环境变量)</label>
-                <input
-                    id="secret"
-                    name="secret"
-                    type="text"
-                    value={values.secret}
-                    onInput={updateField('secret')}
-                />
-
-                <label for="template_id">模板 ID (template_id，可选)</label>
-                <input
-                    id="template_id"
-                    name="template_id"
-                    type="text"
-                    value={values.template_id}
-                    onInput={updateField('template_id')}
-                />
-
-                <label for="base_url">跳转链接 base_url (可选)</label>
-                <input
-                    id="base_url"
-                    name="base_url"
-                    type="text"
-                    value={values.base_url}
-                    onInput={updateField('base_url')}
                 />
 
                 <div class="test-page__actions">

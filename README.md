@@ -9,6 +9,7 @@
 ✅ 真正的微信原生弹窗 + 声音提醒  
 ✅ 支持多用户  
 ✅ 跳转稳定  
+✅ 支持企业微信群机器人 Webhook<br>
 ✅ 可无限换皮肤 (使用项目[wxpushSkin](https://github.com/frankiejun/wxpushSkin))  
 ✅ 支持docker部署
 
@@ -51,13 +52,15 @@
 
 5.  **配置环境变量 (重要)**
     *   返回 Worker 的主管理页面，进入 **设置** > **变量**。
-    *   在 **环境变量** 部分，点击 **添加变量**，依次添加以下配置。这些是服务运行所必需的敏感信息。
+    *   在 **环境变量** 部分，点击 **添加变量**，按需配置以下变量：
         *   `API_TOKEN`: 用于接口调用的访问令牌，请设置一个足够复杂的随机字符串。
-        *   `WX_APPID`: 您的微信公众号 AppID。
-        *   `WX_SECRET`: 您的微信公众号 AppSecret。
-        *   `WX_USERID`: 默认接收消息用户的 OpenID，多个用户请用 `|` 符号分隔 (例如 `openid1|openid2`)。
-        *   `WX_TEMPLATE_ID`: 您要使用的微信模板消息 ID。
-        *   `WX_BASE_URL`: (可选) 点击模板消息后跳转的基础 URL。
+        *   `WX_APPID`: 微信公众号 AppID (使用 `wechat` 渠道时需要)。
+        *   `WX_SECRET`: 微信公众号 AppSecret (使用 `wechat` 渠道时需要)。
+        *   `WX_USERID`: 默认接收消息用户的 OpenID，多个用户请用 `|` 分隔 (使用 `wechat` 渠道时需要)。
+        *   `WX_TEMPLATE_ID`: 微信模板消息 ID (使用 `wechat` 渠道时需要)。
+        *   `WX_BASE_URL`: 点击模板消息后跳转的基础 URL (使用 `wechat` 渠道时需要)。
+        *   `WXCOM_WEBHOOK_URL`: 企业微信群机器人的 Webhook URL (使用 `wecom` 渠道时需要，请妥善保管)。
+        *   `DEFAULT_CHANNEL`: 请求未传 `channel` 时采用的默认渠道，只能设置为 `wechat` 或 `wecom`。
     *   **注意**：添加变量时，请确保勾选 **加密** 选项，以保护您的凭证安全。
 
 
@@ -83,7 +86,7 @@
     *   **根目录**：保持默认的 `/` 即可。
 
 5.  **添加环境变量**
-    *   在配置页面的 **环境变量** 部分，添加与 **方法一** 中相同的 `API_TOKEN`, `HMAC_KEY`, `WX_APPID`, `WX_SECRET` 等变量。
+    *   在配置页面的 **环境变量** 部分，添加与 **方法一** 中相同的 `API_TOKEN` 以及所需渠道的配置。
     *   同样，请务必为每个变量勾选 **加密** 选项。
 
 6.  **保存并部署**
@@ -103,20 +106,16 @@
 ### 请求地址
 
 ```
-https://<您的Worker地址>/api/wxsend
+https://<您的Worker地址>/api/send
 ```
 
 ### 请求参数
 
 | 参数名      | 类型   | 是否必填 | 描述                                           |
 |-------------|--------|----------|------------------------------------------------|
-| `title`     | String | 是       | 消息的标题。                                   |
-| `content`   | String | 是       | 消息的具体内容。                               |
-| `appid`     | String | 否       | 临时覆盖默认的微信 AppID。                     |
-| `secret`    | String | 否       | 临时覆盖默认的微信 AppSecret。                 |
-| `userid`    | String | 否       | 临时覆盖默认的接收用户 OpenID。                  |
-| `template_id`| String | 否       | 临时覆盖默认的模板消息 ID。                    |
-| `base_url`  | String | 否       | 临时覆盖默认的跳转 URL。                       |
+| `title`     | String | 是       | 消息标题。                                     |
+| `content`   | String | 是       | 消息内容，按 Markdown 格式发送。                |
+| `channel`   | String | 否       | 发送渠道：`wechat` 或 `wecom`；省略时使用 `DEFAULT_CHANNEL`。 |
 
 ### 请求头
 
@@ -132,29 +131,41 @@ https://<您的Worker地址>/api/wxsend
 ```json
 {
   "title": "服务器通知",
-  "content": "服务已于北京时间 22:00 重启。",
-  "userid": "temporary_openid_here"
+  "content": "**服务已于北京时间 22:00 重启。**",
+  "channel": "wecom"
 }
 ```
 
-`userid`、`appid`、`secret`、`template_id` 和 `base_url` 可选；未提供时使用 Worker 环境变量。
+企业微信渠道会将标题作为 Markdown 一级标题，并与 `content` 一并发送；消息内容连同标题不得超过 4096 个 UTF-8 字节。微信公众号渠道的 AppID、AppSecret、接收用户、模板 ID 和跳转 URL 均从 Worker 环境变量读取，请求体不再接受这些配置项。
+请求省略 `channel` 时，必须配置有效的 `DEFAULT_CHANNEL`；缺失或不是 `wechat` / `wecom` 时接口会记录错误并返回 `HTTP 500`。
 
 ### cURL 示例
 
 ```bash
 curl -X POST \
-  "https://<您的Worker地址>/api/wxsend" \
+  "https://<您的Worker地址>/api/send" \
   -H "Authorization: Bearer your_secret_token" \
   -H "Content-Type: application/json" \
   -d '{
     "title": "来自 cURL 的消息",
-    "content": "自动化任务已完成。"
+    "content": "自动化任务已完成。",
+    "channel": "wechat"
   }'
+```
+
+企业微信群机器人示例：
+
+```json
+{
+  "title": "服务器通知",
+  "content": "**自动化任务已完成。**",
+  "channel": "wecom"
+}
 ```
 
 ### 成功响应
 
-如果消息成功发送给至少一个用户，服务会返回 `HTTP 200` 状态码和 JSON：
+如果消息发送成功，服务会返回 `HTTP 200` 状态码和 JSON。`wechat` 渠道的响应包含成功发送的用户数，`wecom` 渠道的响应确认群机器人已接收消息：
 
 ```json
 {
@@ -164,7 +175,7 @@ curl -X POST \
 
 ### 失败响应
 
-如果发生错误（如 token 错误、缺少参数、微信接口调用失败等），服务会返回相应的 `HTTP 4xx` 或 `5xx` 状态码和 JSON：
+如果发生错误（如请求格式错误、缺少所选渠道配置或上游接口调用失败等），服务会返回相应的 `HTTP 4xx` 或 `5xx` 状态码和 JSON：
 
 ```json
 {

@@ -12,7 +12,7 @@ import { bodyLimit } from 'hono/body-limit';
 
 const app = new Hono<Env>()
 
-app.use("/*", bodyLimit({ maxSize: 1024 })); // in KiB
+app.use("/*", bodyLimit({ maxSize: 8 * 1024 }));
 
 
 RegisterApi(app)

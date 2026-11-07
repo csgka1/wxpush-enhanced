@@ -7,6 +7,8 @@ export type EnvVar = {
     WX_USERID: string;
     WX_TEMPLATE_ID: string;
     WX_BASE_URL: string;
+    WXCOM_WEBHOOK_URL?: string;
+    DEFAULT_CHANNEL: string;
     ALIVE_DAYS: string;
 };
 
@@ -17,4 +19,9 @@ export type MetaData = {
 export interface Env extends LibEnv {
     Bindings: EnvVar;
     Variables: MetaData;
+}
+
+export enum CHANNEL {
+    wechat = "wechat",
+    wecom = "wecom"
 }
