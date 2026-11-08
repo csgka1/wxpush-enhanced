@@ -1,7 +1,6 @@
-import type { Context } from "hono";
+import type { Context } from 'hono';
 
-import { CHANNEL, type Env } from "../types";
-import { validateChannelEnv } from "../config";
+import type { Env } from '../types';
 
 type WeChatApiResponse = {
     errcode?: number;
@@ -10,33 +9,35 @@ type WeChatApiResponse = {
 };
 
 type WxUrlParam = {
-    message: string,
-    date: string,
-    title: string,
+    message: string;
+    date: string;
+    title: string;
 };
 
 async function getStableToken(appid: string, secret: string): Promise<string> {
-    const response = await fetch("https://api.weixin.qq.com/cgi-bin/stable_token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json;charset=utf-8" },
-        body: JSON.stringify({
-            grant_type: "client_credential",
-            appid,
-            secret,
-            force_refresh: false
-        })
-    });
+    const response = await fetch(
+        'https://api.weixin.qq.com/cgi-bin/stable_token',
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
+            body: JSON.stringify({
+                grant_type: 'client_credential',
+                appid,
+                secret,
+                force_refresh: false,
+            }),
+        },
+    );
 
     const data = (await response.json()) as WeChatApiResponse;
     if (!response.ok || !data.access_token || data.errcode) {
         throw new Error(
-            `Failed to get WeChat access token: ${data.errmsg ?? response.statusText}`
+            `Failed to get WeChat access token: ${data.errmsg ?? response.statusText}`,
         );
     }
 
     return data.access_token;
 }
-
 
 async function sendWxMessage(
     accessToken: string,
@@ -44,12 +45,12 @@ async function sendWxMessage(
     templateId: string,
     baseUrl: string,
     title: string,
-    content: string
+    content: string,
 ): Promise<WeChatApiResponse> {
     let messageUrl = (() => {
         try {
             return new URL('/skin', baseUrl);
-        } catch (err) {
+        } catch {
             return;
         }
     })();
@@ -59,54 +60,59 @@ async function sendWxMessage(
     const params = {
         message: content,
         date: Date.now().toString(),
-        title: title
+        title: title,
     } satisfies WxUrlParam;
 
     for (const [key, value] of Object.entries(params)) {
-        messageUrl.searchParams.set(key, value)
+        messageUrl.searchParams.set(key, value);
     }
-
 
     const response = await fetch(
         `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${encodeURIComponent(accessToken)}`,
         {
-            method: "POST",
-            headers: { "Content-Type": "application/json;charset=utf-8" },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
             body: JSON.stringify({
                 touser: userid,
                 template_id: templateId,
                 url: messageUrl,
                 data: {
                     title: { value: title },
-                    content: { value: content }
-                }
-            })
-        }
+                    content: { value: content },
+                },
+            }),
+        },
     );
 
     if (!response.ok) {
-        throw new Error(`WeChat message request failed: ${response.statusText}`);
+        throw new Error(
+            `WeChat message request failed: ${response.statusText}`,
+        );
     }
 
     return (await response.json()) as WeChatApiResponse;
 }
 
-export async function handleWxSend(c: Context<Env>, title: string, content: string) {
+export async function handleWxSend(
+    c: Context<Env>,
+    title: string,
+    content: string,
+) {
     const appid = c.env.WX_APPID;
     const secret = c.env.WX_SECRET;
-    const userIds = c.env.WX_USERID
-        ?.split("|")
-        .map((userid) => userid.trim())
-        .filter(Boolean) ?? [];
+    const userIds =
+        c.env.WX_USERID?.split('|')
+            .map((userid) => userid.trim())
+            .filter(Boolean) ?? [];
     const templateId = c.env.WX_TEMPLATE_ID;
     const baseUrl = c.env.WX_BASE_URL;
 
     if (!appid || !secret || !userIds.length || !templateId || !baseUrl) {
         return c.json(
             {
-                msg: "Missing required configuration: WX_APPID, WX_SECRET, WX_USERID, WX_TEMPLATE_ID, WX_BASE_URL"
+                msg: 'Missing required configuration: WX_APPID, WX_SECRET, WX_USERID, WX_TEMPLATE_ID, WX_BASE_URL',
             },
-            500
+            500,
         );
     }
 
@@ -114,27 +120,38 @@ export async function handleWxSend(c: Context<Env>, title: string, content: stri
         const accessToken = await getStableToken(appid, secret);
         const results = await Promise.all(
             userIds.map((userid) =>
-                sendWxMessage(accessToken, userid, templateId, baseUrl, title, content)
-            )
+                sendWxMessage(
+                    accessToken,
+                    userid,
+                    templateId,
+                    baseUrl,
+                    title,
+                    content,
+                ),
+            ),
         );
         const successfulCount = results.filter(
-            (result) => result.errcode === 0 || result.errmsg === "ok"
+            (result) => result.errcode === 0 || result.errmsg === 'ok',
         ).length;
 
         if (successfulCount > 0) {
             return c.json({
-                msg: `Successfully sent messages to ${successfulCount} user(s).`
+                msg: `Successfully sent messages to ${successfulCount} user(s).`,
             });
         }
 
-        const firstError = results[0]?.errmsg ?? "Unknown error";
+        const firstError = results[0]?.errmsg ?? 'Unknown error';
         return c.json(
             { msg: `Failed to send messages. First error: ${firstError}` },
-            502
+            502,
         );
     } catch (error) {
-        console.error("[wxsend] Failed to send WeChat message:", error);
-        const message = error instanceof Error ? error.message : "Unknown error";
-        return c.json({ msg: `Failed to send WeChat message: ${message}` }, 502);
+        console.error('[wxsend] Failed to send WeChat message:', error);
+        const message =
+            error instanceof Error ? error.message : 'Unknown error';
+        return c.json(
+            { msg: `Failed to send WeChat message: ${message}` },
+            502,
+        );
     }
 }

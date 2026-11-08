@@ -1,4 +1,4 @@
-import type { Env as LibEnv } from "hono";
+import type { Env as LibEnv } from 'hono';
 
 export type EnvVar = {
     API_TOKEN: string;
@@ -26,7 +26,7 @@ export interface Env extends LibEnv {
 }
 
 export enum CHANNEL {
-    wechat = "wechat",
-    wecom = "wecom",
-    smtp = "smtp"
+    wechat = 'wechat',
+    wecom = 'wecom',
+    smtp = 'smtp',
 }
