@@ -1,10 +1,22 @@
 import { Script } from 'vite-ssr-components/hono'
+import { Env } from '../types';
+import { Hono } from 'hono';
+import { auth_token } from '../middlewares';
+import { renderer } from './renderer';
 
 type TestPageProps = {
     token: string
 }
 
-export default function TestPage({ token }: TestPageProps) {
+export default function RegisterTestPage<E = Env>(app: Hono<Env>) {
+    app.get('/test', auth_token, renderer, async (c) => {
+      c.set('pageTitle', 'WXPush 测试页面');
+      return c.render(<TestPage token={ c.env.API_TOKEN } />);
+    });
+}
+
+
+function TestPage({ token }: TestPageProps) {
     return (
         <main class="test-page">
             <h1>WXPush 测试页面</h1>

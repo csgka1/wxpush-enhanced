@@ -1,6 +1,6 @@
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { Link, ViteClient } from 'vite-ssr-components/hono'
-import { Env } from './types';
+import { Env } from '../types';
 
 export const renderer = jsxRenderer<Env>(({ children }, c) => {
   const pageTitle = c.get('pageTitle') || 'Default Title';
