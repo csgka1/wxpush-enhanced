@@ -7,8 +7,12 @@ export type EnvVar = {
     WX_USERID: string;
     WX_TEMPLATE_ID: string;
     WX_BASE_URL: string;
-    WXCOM_WEBHOOK_URL?: string;
+    WECOM_WEBHOOK_URL?: string;
+    SMTP_URL?: string;
+    SMTP_FROM?: string;
+    SMTP_TO?: string;
     DEFAULT_CHANNEL: string;
+    ENABLED_CHANNELS: string;
     ALIVE_DAYS: string;
 };
 
@@ -23,5 +27,6 @@ export interface Env extends LibEnv {
 
 export enum CHANNEL {
     wechat = "wechat",
-    wecom = "wecom"
+    wecom = "wecom",
+    smtp = "smtp"
 }

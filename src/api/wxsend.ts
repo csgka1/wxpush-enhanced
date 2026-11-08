@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 
-import type { Env } from "../types";
+import { CHANNEL, type Env } from "../types";
+import { validateChannelEnv } from "../config";
 
 type WeChatApiResponse = {
     errcode?: number;

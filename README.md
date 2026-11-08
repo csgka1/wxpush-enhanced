@@ -1,6 +1,6 @@
 # WXPush - 微信消息推送服务 (Cloudflare Workers)
 
-这是一个基于 [Cloudflare Workers](https://workers.cloudflare.com/) 搭建的、轻量级的微信公众号模板消息推送服务。它提供了一个简单的 API 接口，让您可以轻松地通过 HTTP 请求将消息推送到指定的微信用户。
+这是一个基于 [Cloudflare Workers](https://workers.cloudflare.com/) 搭建的轻量级消息推送服务，支持微信公众号、企业微信群机器人和第三方 SMTP 邮件。
 
 ## ✨ 特性
 
@@ -10,6 +10,7 @@
 ✅ 支持多用户  
 ✅ 跳转稳定  
 ✅ 支持企业微信群机器人 Webhook<br>
+✅ 支持第三方 SMTP 邮件<br>
 ✅ 可无限换皮肤 (使用项目[wxpushSkin](https://github.com/frankiejun/wxpushSkin))  
 ✅ 支持docker部署
 
@@ -59,8 +60,11 @@
         *   `WX_USERID`: 默认接收消息用户的 OpenID，多个用户请用 `|` 分隔 (使用 `wechat` 渠道时需要)。
         *   `WX_TEMPLATE_ID`: 微信模板消息 ID (使用 `wechat` 渠道时需要)。
         *   `WX_BASE_URL`: 点击模板消息后跳转的基础 URL (使用 `wechat` 渠道时需要)。
-        *   `WXCOM_WEBHOOK_URL`: 企业微信群机器人的 Webhook URL (使用 `wecom` 渠道时需要，请妥善保管)。
-        *   `DEFAULT_CHANNEL`: 请求未传 `channel` 时采用的默认渠道，只能设置为 `wechat` 或 `wecom`。
+        *   `WECOM_WEBHOOK_URL`: 企业微信群机器人的 Webhook URL (使用 `wecom` 渠道时需要，请妥善保管)。
+        *   `SMTP_URL`: 第三方 SMTPS 连接 URL，格式为 `smtps://用户名:密码@主机名:465`。用户名和密码中的特殊字符须进行 URL 百分号编码。
+        *   `SMTP_FROM`: 已获服务商授权的发件人地址。
+        *   `SMTP_TO`: 固定收件人地址，多个收件人用 `|` 分隔，最多 50 个。
+        *   `DEFAULT_CHANNEL`: 请求未传 `channel` 时采用的默认渠道，只能设置为 `wechat`、`wecom` 或 `smtp`。
     *   **注意**：添加变量时，请确保勾选 **加密** 选项，以保护您的凭证安全。
 
 
@@ -115,7 +119,7 @@ https://<您的Worker地址>/api/send
 |-------------|--------|----------|------------------------------------------------|
 | `title`     | String | 是       | 消息标题。                                     |
 | `content`   | String | 是       | 消息内容，按 Markdown 格式发送。                |
-| `channel`   | String | 否       | 发送渠道：`wechat` 或 `wecom`；省略时使用 `DEFAULT_CHANNEL`。 |
+| `channel`   | String | 否       | 发送渠道：`wechat`、`wecom` 或 `smtp`；省略时使用 `DEFAULT_CHANNEL`。 |
 
 ### 请求头
 
@@ -137,7 +141,8 @@ https://<您的Worker地址>/api/send
 ```
 
 企业微信渠道会将标题作为 Markdown 一级标题，并与 `content` 一并发送；消息内容连同标题不得超过 4096 个 UTF-8 字节。微信公众号渠道的 AppID、AppSecret、接收用户、模板 ID 和跳转 URL 均从 Worker 环境变量读取，请求体不再接受这些配置项。
-请求省略 `channel` 时，必须配置有效的 `DEFAULT_CHANNEL`；缺失或不是 `wechat` / `wecom` 时接口会记录错误并返回 `HTTP 500`。
+请求省略 `channel` 时，必须配置有效的 `DEFAULT_CHANNEL`；缺失或不是 `wechat` / `wecom` / `smtp` 时接口会记录错误并返回 `HTTP 500`。
+SMTP 渠道通过 `SMTP_URL` 配置 SMTPS 连接，将 `title` 用作邮件主题、`content` 用作纯文本正文，发件人由 `SMTP_FROM` 指定，收件人固定从 `SMTP_TO` 读取，不接受请求指定收件人。请仅发送用户预期收到的事务通知，不得发送垃圾邮件或营销邮件，并遵守[Cloudflare 可接受使用政策](https://www.cloudflare.com/terms/)及服务商的发送政策。
 
 ### cURL 示例
 
@@ -162,6 +167,18 @@ curl -X POST \
   "channel": "wecom"
 }
 ```
+
+SMTP 邮件示例：
+
+```json
+{
+  "title": "服务器通知",
+  "content": "服务已于北京时间 22:00 重启。",
+  "channel": "smtp"
+}
+```
+
+配置第三方 SMTP 时，将服务商提供的主机、用户名、密码和隐式 TLS 端口 `465` 合并为 `SMTP_URL`，例如 `smtps://smith%40example.com:Abc12345@smtp.example.com:465`。用户名或密码包含 `@`、`:` 等 URL 特殊字符时须先进行百分号编码。Cloudflare Workers 的[出站 TCP Socket](https://developers.cloudflare.com/workers/runtime-apis/tcp-sockets/) 不允许连接 SMTP `25` 端口；为确保 SMTP 认证始终在加密连接内进行，本渠道仅接受 SMTPS `465`。
 
 ### 成功响应
 

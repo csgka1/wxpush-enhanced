@@ -5,6 +5,7 @@ import { timingSafeEqual } from 'hono/utils/buffer';
 import type { Env } from "./types";
 import { HTTPException } from "hono/http-exception";
 import { bearerAuth } from "hono/bearer-auth";
+import * as Config from "./config";
 
 
 export const auth_token: MiddlewareHandler<Env> = async(c, next) => {
@@ -19,3 +20,9 @@ export const auth_token: MiddlewareHandler<Env> = async(c, next) => {
     }
     await next();
 };
+
+
+export const validateGlobalConfig: MiddlewareHandler<Env> = async(c, next) => {
+    Config.validateGlobalEnv(c);
+    await next();
+}

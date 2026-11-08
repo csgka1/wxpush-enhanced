@@ -20,9 +20,9 @@ export async function handleWecomSend(c: Context<Env>, title: string, content: s
         );
     }
 
-    const url = c.env.WXCOM_WEBHOOK_URL;
+    const url = c.env.WECOM_WEBHOOK_URL;
     if (!url) {
-        return c.json({ msg: "Missing required configuration: WXCOM_WEBHOOK_URL" }, 500);
+        return c.json({ msg: "Missing required configuration: WECOM_WEBHOOK_URL" }, 500);
     }
 
     try {

@@ -1,7 +1,7 @@
 import { Env } from './types';
 
 import { Hono } from 'hono';
-import { auth_token } from './middlewares';
+import { auth_token, validateGlobalConfig } from './middlewares';
 import { renderer } from './renderer';
 import Skin from './skin';
 import TestPage from './test';
@@ -13,6 +13,7 @@ import { bodyLimit } from 'hono/body-limit';
 const app = new Hono<Env>()
 
 app.use("/*", bodyLimit({ maxSize: 8 * 1024 }));
+app.use('/*', validateGlobalConfig);
 
 
 RegisterApi(app)

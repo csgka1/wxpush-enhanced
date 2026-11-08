@@ -4,7 +4,7 @@ import { render, useRef, useState } from 'hono/jsx/dom'
 type TestFormValues = {
     title: string
     content: string
-    channel: 'wechat' | 'wecom'
+    channel: 'wechat' | 'wecom' | 'smtp'
 }
 
 type TestFormProps = {
@@ -96,6 +96,7 @@ function TestForm({ token }: TestFormProps) {
                 >
                     <option value="wechat">微信公众号 (wechat)</option>
                     <option value="wecom">企业微信群机器人 (wecom)</option>
+                    <option value="smtp">Email</option>
                 </select>
 
                 <label for="title">标题 (title)</label>
