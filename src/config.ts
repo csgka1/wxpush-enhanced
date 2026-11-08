@@ -100,15 +100,7 @@ export function validateChannelEnv<C extends CHANNEL>(
     } as ValidatedChannelEnv<C>;
 }
 
-
-/**
- * 验证全局环境变量配置，并返回经过类型转换后的配置
- * 
- * @throws { z.ZodError }
- * 
- */
-export function validateGlobalEnv(c: Context<Env>) {
-    return z.object({
+const globalEnvScheme = z.object({
         API_TOKEN: z.string().regex(/^[a-zA-Z0-9_\-=]+$/),
         DEFAULT_CHANNEL: z.enum(CHANNEL).optional(),
         ENABLED_CHANNELS: z.string().trim().min(1)
@@ -127,5 +119,15 @@ export function validateGlobalEnv(c: Context<Env>) {
             });
         }
     })
-    .parse(c.env);
+
+/**
+ * 验证全局环境变量配置，并返回经过类型转换后的配置
+ * 
+ * @throws { z.ZodError }
+ * 
+ */
+export function validateGlobalEnv(c: Context<Env>) {
+    return globalEnvScheme.parse(c.env);
 }
+
+export type GlobalEnv = z.infer<typeof globalEnvScheme>;

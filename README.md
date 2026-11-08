@@ -120,6 +120,7 @@ https://<您的Worker地址>/api/send
 | `title`     | String | 是       | 消息标题。                                     |
 | `content`   | String | 是       | 消息内容，按 Markdown 格式发送。                |
 | `channel`   | String | 否       | 发送渠道：`wechat`、`wecom` 或 `smtp`；省略时使用 `DEFAULT_CHANNEL`。 |
+| `acceptChannelFallback` | Boolean | 否 | 指定的渠道未启用时是否回退到 `DEFAULT_CHANNEL`，默认 `true`。未指定 `channel` 时始终使用默认渠道，此参数不影响该行为。 |
 
 ### 请求头
 
@@ -141,7 +142,7 @@ https://<您的Worker地址>/api/send
 ```
 
 企业微信渠道会将标题作为 Markdown 一级标题，并与 `content` 一并发送；消息内容连同标题不得超过 4096 个 UTF-8 字节。微信公众号渠道的 AppID、AppSecret、接收用户、模板 ID 和跳转 URL 均从 Worker 环境变量读取，请求体不再接受这些配置项。
-请求省略 `channel` 时，必须配置有效的 `DEFAULT_CHANNEL`；缺失或不是 `wechat` / `wecom` / `smtp` 时接口会记录错误并返回 `HTTP 500`。
+请求省略 `channel` 时始终尝试使用 `DEFAULT_CHANNEL`，无论 `acceptChannelFallback` 的值为何。显式指定了未启用的渠道时，若 `acceptChannelFallback` 为 `true`（默认值）则尝试回退至默认渠道；设为 `false` 则返回 `HTTP 400`。默认渠道必须是已启用的渠道。
 SMTP 渠道通过 `SMTP_URL` 配置 SMTPS 连接，将 `title` 用作邮件主题、`content` 用作纯文本正文，发件人由 `SMTP_FROM` 指定，收件人固定从 `SMTP_TO` 读取，不接受请求指定收件人。请仅发送用户预期收到的事务通知，不得发送垃圾邮件或营销邮件，并遵守[Cloudflare 可接受使用政策](https://www.cloudflare.com/terms/)及服务商的发送政策。
 
 ### cURL 示例
