@@ -1,4 +1,4 @@
-import { MiddlewareHandler } from 'hono';
+import { type Context, type MiddlewareHandler } from 'hono';
 
 import { timingSafeEqual } from 'hono/utils/buffer';
 
@@ -23,7 +23,29 @@ export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
     await next();
 };
 
-export const validateGlobalConfig: MiddlewareHandler<Env> = async (c, next) => {
-    Config.validateGlobalEnv(c);
+export const installGlobalConfig: MiddlewareHandler<Env> = async (c, next) => {
+    const config = Config.validateGlobalEnv(c);
+    c.set('globalConfig', config);
     await next();
+};
+
+export const checkSign = <Query>(
+    getClientSign: (
+        c: Context<Env, string, { out: { query: Query } }>,
+    ) => string,
+    getServerSign: (
+        c: Context<Env, string, { out: { query: Query } }>,
+    ) => string,
+): MiddlewareHandler<Env, string, { out: { query: Query } }> => {
+    return async (c, next) => {
+        const clientSign = getClientSign(c);
+        const serverSign = getServerSign(c);
+        if (!(await timingSafeEqual(clientSign, serverSign))) {
+            throw new HTTPException(403, {
+                message: 'Invalid Sign',
+            });
+        }
+
+        await next();
+    };
 };

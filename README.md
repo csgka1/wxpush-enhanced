@@ -62,6 +62,7 @@
         *   `WX_BASE_URL`: 点击模板消息后跳转的基础 URL (使用 `wechat` 渠道时需要)。
         *   `WECOM_WEBHOOK_URL`: 企业微信群机器人的 Webhook URL (使用 `wecom` 渠道时需要，请妥善保管)。
         *   `SMTP_URL`: 第三方 SMTPS 连接 URL，格式为 `smtps://用户名:密码@主机名:465`。用户名和密码中的特殊字符须进行 URL 百分号编码。
+        *   `SIGN_SECRET`: HMAC签名密钥，用于防止接口滥用。
         *   `SMTP_FROM`: 已获服务商授权的发件人地址。
         *   `SMTP_TO`: 固定收件人地址，多个收件人用 `|` 分隔，最多 50 个。
         *   `DEFAULT_CHANNEL`: 请求未传 `channel` 时采用的默认渠道，只能设置为 `wechat`、`wecom` 或 `smtp`。

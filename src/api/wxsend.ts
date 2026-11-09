@@ -1,17 +1,12 @@
 import type { Context } from 'hono';
 
 import type { Env } from '../types';
+import { signSkinParam, SkinPageParam } from '../pages/skin';
 
 type WeChatApiResponse = {
     errcode?: number;
     errmsg?: string;
     access_token?: string;
-};
-
-type WxUrlParam = {
-    message: string;
-    date: string;
-    title: string;
 };
 
 async function getStableToken(appid: string, secret: string): Promise<string> {
@@ -46,6 +41,7 @@ async function sendWxMessage(
     baseUrl: string,
     title: string,
     content: string,
+    c: Context<Env>,
 ): Promise<WeChatApiResponse> {
     let messageUrl = (() => {
         try {
@@ -57,15 +53,20 @@ async function sendWxMessage(
     if (!messageUrl) {
         throw new Error('cannot assemble Url');
     }
+    const signKey = 'presharedSign' satisfies keyof SkinPageParam;
     const params = {
         message: content,
-        date: Date.now().toString(),
+        timestamp: Date.now(),
         title: title,
-    } satisfies WxUrlParam;
+        nonce: Math.floor(Math.random() * 0x7fffffff).toString(16),
+    } satisfies Omit<SkinPageParam, typeof signKey>;
+
+    const sign = signSkinParam(params, c);
 
     for (const [key, value] of Object.entries(params)) {
-        messageUrl.searchParams.set(key, value);
+        messageUrl.searchParams.set(key, value.toString());
     }
+    messageUrl.searchParams.set(signKey, sign);
 
     const response = await fetch(
         `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${encodeURIComponent(accessToken)}`,
@@ -127,6 +128,7 @@ export async function handleWxSend(
                     baseUrl,
                     title,
                     content,
+                    c,
                 ),
             ),
         );

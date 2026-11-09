@@ -1,11 +1,12 @@
 import { marked } from 'marked';
 import { Script } from 'vite-ssr-components/hono';
-import { getBeijingTime } from '../util';
+import { getBeijingTime, hmac } from '../util';
 import { z } from 'zod';
-import { type Hono } from 'hono';
+import { Context, type Hono } from 'hono';
 import { renderer } from './renderer';
 import { zValidator } from '@hono/zod-validator';
 import { Env } from '../types';
+import { checkSign } from '../middlewares';
 
 type SkinProps = {
     title: string;
@@ -16,10 +17,30 @@ type SkinProps = {
 const SkinSchema = z.object({
     title: z.string().default('消息推送'),
     message: z.string().default('无告警信息'),
-    date: z.number().nonnegative(),
+    timestamp: z
+        .string()
+        .transform(Number)
+        .refine((n) => n >= 0 && Number.isInteger(n)),
+    nonce: z.string().regex(/^[0-9a-fA-F]{1,64}$/),
+    presharedSign: z.base64(),
 });
 
 export type SkinPageParam = z.infer<typeof SkinSchema>;
+type SignKey = Extract<'presharedSign', keyof SkinPageParam>;
+
+// 在日后对其他接口进行鉴权时，再考虑封装问题。
+export function signSkinParam(
+    { title, message, timestamp, nonce }: Omit<SkinPageParam, SignKey>,
+    c: Context<Env>,
+): string {
+    const payload = [
+        `message=${message}`,
+        `nonce=${nonce}`,
+        `timestamp=${timestamp}`,
+        `title=${title}`,
+    ].join('&');
+    return hmac(payload, c.var.globalConfig.SIGN_SECRET);
+}
 
 export default function RegisterSkinPage(app: Hono<Env>) {
     /**
@@ -30,18 +51,30 @@ export default function RegisterSkinPage(app: Hono<Env>) {
      *  - message: string
      *  - date: string
      */
-    app.get('/skin', renderer, zValidator('query', SkinSchema), async (c) => {
-        c.set('pageTitle', '消息推送');
-        const params = c.req.valid('query');
-
-        return c.render(
-            <Skin
-                title={params.title || '消息推送'}
-                message={params.message || '无信息'}
-                date={params.date ? new Date(params.date) : undefined}
-            />,
-        );
-    });
+    app.get(
+        '/skin',
+        renderer,
+        zValidator('query', SkinSchema),
+        checkSign<SkinPageParam>(
+            (c) => c.req.valid('query').presharedSign,
+            (c) => signSkinParam(c.req.valid('query'), c),
+        ),
+        async (c) => {
+            c.set('pageTitle', '消息推送');
+            const params = c.req.valid('query');
+            return c.render(
+                <Skin
+                    title={params.title || '消息推送'}
+                    message={params.message || '无信息'}
+                    date={
+                        params.timestamp
+                            ? new Date(params.timestamp)
+                            : undefined
+                    }
+                />,
+            );
+        },
+    );
 }
 
 function Skin({ title, message, date }: SkinProps) {

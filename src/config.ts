@@ -107,6 +107,7 @@ export function validateChannelEnv<C extends CHANNEL>(
 const globalEnvScheme = z
     .object({
         API_TOKEN: z.string().regex(/^[a-zA-Z0-9_\-=]+$/),
+        SIGN_SECRET: z.string().regex(/^[a-zA-Z0-9]{10,32}$/),
         DEFAULT_CHANNEL: z.enum(CHANNEL).optional(),
         ENABLED_CHANNELS: z
             .string()
