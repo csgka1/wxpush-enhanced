@@ -18,8 +18,8 @@ const sendHandlers: Record<CHANNEL, SendHandler> = {
 
 const sendSchema = z
     .object({
-        title: z.string().min(1),
-        content: z.string().min(1),
+        title: z.string().max(128),
+        content: z.string().max(4096),
         channel: z.enum(CHANNEL).optional(),
         acceptChannelFallback: z.boolean().default(true), // fallback to default
     })

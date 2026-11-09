@@ -118,8 +118,8 @@ https://<您的Worker地址>/api/send
 
 | 参数名      | 类型   | 是否必填 | 描述                                           |
 |-------------|--------|----------|------------------------------------------------|
-| `title`     | String | 是       | 消息标题。                                     |
-| `content`   | String | 是       | 消息内容，按 Markdown 格式发送。                |
+| `title`     | String | 是       | 消息标题，最大128个字符                                     |
+| `content`   | String | 是       | 消息内容，按 Markdown 格式发送,最大4096个字符。                |
 | `channel`   | String | 否       | 发送渠道：`wechat`、`wecom` 或 `smtp`；省略时使用 `DEFAULT_CHANNEL`。 |
 | `acceptChannelFallback` | Boolean | 否 | 指定的渠道未启用时是否回退到 `DEFAULT_CHANNEL`，默认 `true`。未指定 `channel` 时始终使用默认渠道，此参数不影响该行为。 |
 
