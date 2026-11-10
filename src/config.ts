@@ -119,6 +119,7 @@ const globalEnvScheme = z
                 (channels) => new Set(channels).size === channels.length,
                 'ENABLED_CHANNELS must not contain duplicates.',
             ),
+        DEBUG: z.string().transform(Number).transform(Boolean).default(false),
     })
     .superRefine(({ DEFAULT_CHANNEL, ENABLED_CHANNELS }, ctx) => {
         if (DEFAULT_CHANNEL && !ENABLED_CHANNELS.includes(DEFAULT_CHANNEL)) {

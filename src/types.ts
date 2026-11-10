@@ -16,6 +16,7 @@ export type EnvVar = {
     DEFAULT_CHANNEL?: string;
     ENABLED_CHANNELS?: string;
     ALIVE_DAYS?: string;
+    DEBUG?: string;
 };
 
 export type MetaData = {

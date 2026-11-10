@@ -7,6 +7,7 @@ import { renderer } from './renderer';
 import { zValidator } from '@hono/zod-validator';
 import { Env } from '../types';
 import { checkSign } from '../middlewares';
+import sanitizeHtml from 'sanitize-html';
 
 type SkinProps = {
     title: string;
@@ -54,7 +55,17 @@ export default function RegisterSkinPage(app: Hono<Env>) {
     app.get(
         '/skin',
         renderer,
-        zValidator('query', SkinSchema),
+        zValidator('query', SkinSchema, (result, c) => {
+            if (!result.success) {
+                // todo: only DEBUG
+                console.log(
+                    `${c.req.path} has met error during Zod Validation:`,
+                );
+                console.log('ERROR:\n', result.error);
+                console.log('DATA:\n', result.data);
+                console.log(`REQ:`, c.req);
+            }
+        }),
         checkSign<SkinPageParam>(
             (c) => c.req.valid('query').presharedSign,
             (c) => signSkinParam(c.req.valid('query'), c),
@@ -78,7 +89,49 @@ export default function RegisterSkinPage(app: Hono<Env>) {
 }
 
 function Skin({ title, message, date }: SkinProps) {
-    const parsedMarkdown = marked.parse(message, { async: false });
+    const parsedMarkdown = sanitizeHtml(
+        marked.parse(message, { async: false }),
+        {
+            allowedTags: [
+                'p',
+                'br',
+                'strong',
+                'em',
+                'del',
+                'blockquote',
+                'ul',
+                'ol',
+                'li',
+                'h1',
+                'h2',
+                'h3',
+                'h4',
+                'h5',
+                'h6',
+                'pre',
+                'code',
+                'hr',
+                'a',
+                'img',
+                'table',
+                'thead',
+                'tbody',
+                'tr',
+                'th',
+                'td',
+            ],
+            allowedAttributes: {
+                a: ['href', 'title'],
+                img: ['src', 'alt', 'title'],
+            },
+            allowedSchemes: ['https', 'http', 'mailto'],
+            allowedSchemesByTag: {
+                img: ['https', 'http'],
+            },
+            allowProtocolRelative: false,
+        },
+    );
+
     return (
         <div>
             <div id="particles-root"></div>
