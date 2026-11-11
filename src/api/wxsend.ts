@@ -87,7 +87,7 @@ async function sendWxMessage(
 
     // TODO: 日后若有多处 DEBUG 需求，应将方法封装到 c.var.logger 中
     if (c.var.globalConfig.DEBUG) {
-        console.log(messageUrl.href);
+        console.log(`href = ${messageUrl.href}, hrefLength=${messageUrl.href.length}`);
     }
 
     if (!response.ok) {
@@ -147,9 +147,9 @@ export async function handleWxSend(
             });
         }
 
-        const firstError = results[0]?.errmsg ?? 'Unknown error';
+        const firstError = results[0];
         return c.json(
-            { msg: `Failed to send messages. First error: ${firstError}` },
+            { msg: `Failed to send messages. First error: ${firstError.errmsg ?? 'Unknown Error'}, errcode=${firstError.errcode ?? '[unknown]'}` },
             502,
         );
     } catch (error) {
