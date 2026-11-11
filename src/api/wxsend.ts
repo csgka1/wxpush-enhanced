@@ -34,6 +34,29 @@ async function getStableToken(appid: string, secret: string): Promise<string> {
     return data.access_token;
 }
 
+/**
+ * 返回截短后的预览文本，以适应文字长度限制
+ */
+function trim_text(text: string, limit: number) {
+    if (limit < 0) {
+        limit = 0;
+    }
+    limit = Math.floor(limit);
+    if (text.length <= limit) {
+        return text;
+    } else {
+        if (limit <= 1) {
+            return '';
+        } else if (limit == 2) {
+            return '..';
+        } else if (limit === 3) {
+            return '...';
+        } else {
+            return text.substring(0, limit - 3) + '...';
+        }
+    }
+}
+
 async function sendWxMessage(
     accessToken: string,
     userid: string,
@@ -68,6 +91,7 @@ async function sendWxMessage(
     }
     messageUrl.searchParams.set(signKey, sign);
 
+    const WX_TEMPLATE_THING_LENGTH_LIMIT = 20;
     const response = await fetch(
         `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${encodeURIComponent(accessToken)}`,
         {
@@ -78,8 +102,8 @@ async function sendWxMessage(
                 template_id: templateId,
                 url: messageUrl,
                 data: {
-                    title: { value: title },
-                    content: { value: content },
+                    thing01: { value: trim_text(title, WX_TEMPLATE_THING_LENGTH_LIMIT) },
+                    thing02: { value: trim_text(content, WX_TEMPLATE_THING_LENGTH_LIMIT) },
                 },
             }),
         },
