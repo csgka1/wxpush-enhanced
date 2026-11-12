@@ -51,11 +51,19 @@ const SkinSchema = z.object({
         .refine((n) => n >= 0 && Number.isInteger(n)),
     nonce: z.string().regex(/^[0-9a-fA-F]{1,64}$/),
     truncatedCount: z.string().transform(Number).default(0),
-    presharedSign: z.base64(),
+    sign: z.base64url(),
 });
 
 export type SkinPageParam = z.infer<typeof SkinSchema>;
-type SignKey = Extract<'presharedSign', keyof SkinPageParam>;
+type SignKeyRaw = Extract<'sign', keyof SkinPageParam>;
+/**
+ * 若 `SignKeyRaw` 解析为 `never`，
+ * 则回退为一个不属于 `keyof any` 的对象类型，
+ * 使 `Omit<..., SignKey>` 等使用处直接在编译期报错。
+ */
+type SignKey = [SignKeyRaw] extends [never]
+    ? { readonly __error: 'SignKey resolved to never: check the sign key name' }
+    : SignKeyRaw;
 
 // 在日后对其他接口进行鉴权时，再考虑封装问题。
 export function signSkinParam(
@@ -95,7 +103,7 @@ export default function RegisterSkinPage(app: Hono<Env>) {
             }
         }),
         checkSign<SkinPageParam>(
-            (c) => c.req.valid('query').presharedSign,
+            (c) => c.req.valid('query').sign,
             (c) => signSkinParam(c.req.valid('query'), c),
         ),
         async (c) => {

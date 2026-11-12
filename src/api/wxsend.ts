@@ -58,7 +58,7 @@ async function sendWxMessage(
     if (!messageUrl) {
         throw new Error('cannot assemble Url');
     }
-    const signKey = 'presharedSign' satisfies keyof SkinPageParam;
+    const signKey = 'sign' satisfies keyof SkinPageParam;
 
     /**
      * 微信限制 URL 长度最大为 10240，此处为其他参数留出余量
