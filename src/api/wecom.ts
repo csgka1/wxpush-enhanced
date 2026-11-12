@@ -1,6 +1,7 @@
 import type { Context } from 'hono';
 
 import type { Env } from '../types';
+import { truncateUtf8 } from '../util';
 
 export function formatWecomMarkdown(title: string, content: string): string {
     return `# ${title}\n\n${content}`;
@@ -16,14 +17,13 @@ export async function handleWecomSend(
     title: string,
     content: string,
 ) {
-    const markdown = formatWecomMarkdown(title, content);
-    if (new TextEncoder().encode(markdown).byteLength > 4096) {
-        return c.json(
-            {
-                msg: 'WeCom markdown content, including the title, must not exceed 4096 UTF-8 bytes.',
-            },
-            400,
-        );
+    const WECOM_BYTES_LIMIT = 4096;
+    const md = formatWecomMarkdown(title, content);
+    let truncatedMd = md;
+    if (Buffer.from(md).length >= WECOM_BYTES_LIMIT) {
+        const replacer = ' ...[消息过长被截断]';
+        const replacerBytes=Buffer.from(replacer);
+        truncatedMd = truncateUtf8(md, WECOM_BYTES_LIMIT - replacerBytes.length) + replacer;
     }
 
     const url = c.env.WECOM_WEBHOOK_URL;
@@ -39,8 +39,8 @@ export async function handleWecomSend(
             method: 'POST',
             headers: { 'Content-Type': 'application/json;charset=utf-8' },
             body: JSON.stringify({
-                msgtype: 'markdown',
-                markdown: { content: markdown },
+                msgtype: 'markdown_v2',
+                markdown_v2: { content: truncatedMd },
             }),
         });
         const data = (await response.json()) as WecomApiResponse;
@@ -51,7 +51,7 @@ export async function handleWecomSend(
             );
         }
 
-        return c.json({ msg: 'Successfully sent message to WeCom group.' });
+        return c.json({ msg: `Successfully sent message to WeCom group.` });
     } catch (error) {
         console.error('[wecom] Failed to send WeCom message:', error);
         const message =

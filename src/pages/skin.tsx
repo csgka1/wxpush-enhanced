@@ -1,6 +1,11 @@
 import { marked } from 'marked';
 import { Script } from 'vite-ssr-components/hono';
-import { getBeijingTime, hmac } from '../util';
+import {
+    b64Decode,
+    b64Encode,
+    getBeijingTime,
+    hmac,
+} from '../util';
 import { z } from 'zod';
 import { Context, type Hono } from 'hono';
 import { renderer } from './renderer';
@@ -13,16 +18,39 @@ type SkinProps = {
     title: string;
     message: string;
     date?: Date;
+    truncatedCount: number;
 };
 
+
+const b64UrlCodec = z.codec(z.base64url(), z.string(), {
+        decode: (value, ctx) => {
+            try {
+                return b64Decode(value, "string", "base64url");
+            } catch {
+                ctx.issues.push({
+                    code: 'custom',
+                    message: 'Expected valid Base64URL-encoded UTF-8 text.',
+                    input: value,
+                });
+                return z.NEVER;
+            }
+        },
+        encode: (s) => b64Encode(s, "base64url"),
+    });
+
 const SkinSchema = z.object({
-    title: z.string().default('消息推送'),
-    message: z.string().default('无告警信息'),
+    title: b64UrlCodec
+        .pipe(z.string().max(128))
+        .default('消息推送'),
+    message: b64UrlCodec
+        .pipe(z.string().max(4096))
+        .default('无告警信息'),
     timestamp: z
         .string()
         .transform(Number)
         .refine((n) => n >= 0 && Number.isInteger(n)),
     nonce: z.string().regex(/^[0-9a-fA-F]{1,64}$/),
+    truncatedCount: z.string().transform(Number).default(0),
     presharedSign: z.base64(),
 });
 
@@ -82,13 +110,14 @@ export default function RegisterSkinPage(app: Hono<Env>) {
                             ? new Date(params.timestamp)
                             : undefined
                     }
+                    truncatedCount={params.truncatedCount}
                 />,
             );
         },
     );
 }
 
-function Skin({ title, message, date }: SkinProps) {
+function Skin({ title, message, date, truncatedCount }: SkinProps) {
     const parsedMarkdown = sanitizeHtml(
         marked.parse(message, { async: false }),
         {
@@ -146,6 +175,14 @@ function Skin({ title, message, date }: SkinProps) {
                         id="message"
                         dangerouslySetInnerHTML={{ __html: parsedMarkdown }}
                     />
+
+                    <div>{ truncatedCount > 0 ? 
+                        (<div class="info-content">
+                            <br />
+                            <b><i> ... 由于内容过长，消息被截断了 { truncatedCount } 字符。</i></b>
+                        </div>)
+                        : ""
+                    }</div>
                 </div>
 
                 <div class="info-card">

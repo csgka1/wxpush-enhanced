@@ -2,6 +2,11 @@ import type { Context } from 'hono';
 
 import type { Env } from '../types';
 import { signSkinParam, SkinPageParam } from '../pages/skin';
+import {
+    b64Encode,
+    truncate_and_replace,
+    truncateUtf8,
+} from '../util';
 
 type WeChatApiResponse = {
     errcode?: number;
@@ -34,29 +39,6 @@ async function getStableToken(appid: string, secret: string): Promise<string> {
     return data.access_token;
 }
 
-/**
- * 返回截短后的预览文本，以适应文字长度限制
- */
-function trim_text(text: string, limit: number) {
-    if (limit < 0) {
-        limit = 0;
-    }
-    limit = Math.floor(limit);
-    if (text.length <= limit) {
-        return text;
-    } else {
-        if (limit <= 1) {
-            return '';
-        } else if (limit == 2) {
-            return '..';
-        } else if (limit === 3) {
-            return '...';
-        } else {
-            return text.substring(0, limit - 3) + '...';
-        }
-    }
-}
-
 async function sendWxMessage(
     accessToken: string,
     userid: string,
@@ -77,17 +59,32 @@ async function sendWxMessage(
         throw new Error('cannot assemble Url');
     }
     const signKey = 'presharedSign' satisfies keyof SkinPageParam;
+
+    /**
+     * 微信限制 URL 长度最大为 10240，此处为其他参数留出余量
+     */
+    const SKIN_MESSAGE_MAX_B64_BYTES = 8192;
+
+    const SKIN_MESSAGE_MAX_BYTES = SKIN_MESSAGE_MAX_B64_BYTES * (3 / 4);
+
+    const truncatedContent = truncateUtf8(content, SKIN_MESSAGE_MAX_BYTES);
+
     const params = {
-        message: content,
+        message: truncatedContent,
         timestamp: Date.now(),
         title: title,
         nonce: Math.floor(Math.random() * 0x7fffffff).toString(16),
+        truncatedCount: Math.abs(content.length - truncatedContent.length)
     } satisfies Omit<SkinPageParam, typeof signKey>;
 
     const sign = signSkinParam(params, c);
 
     for (const [key, value] of Object.entries(params)) {
-        messageUrl.searchParams.set(key, value.toString());
+        const encodedValue =
+            key === 'message' || key === 'title'
+                ? b64Encode(value.toString(), 'base64url')
+                : value.toString();
+        messageUrl.searchParams.set(key, encodedValue);
     }
     messageUrl.searchParams.set(signKey, sign);
 
@@ -102,8 +99,8 @@ async function sendWxMessage(
                 template_id: templateId,
                 url: messageUrl,
                 data: {
-                    thing01: { value: trim_text(title, WX_TEMPLATE_THING_LENGTH_LIMIT) },
-                    thing02: { value: trim_text(content, WX_TEMPLATE_THING_LENGTH_LIMIT) },
+                    thing01: { value: truncate_and_replace(title, WX_TEMPLATE_THING_LENGTH_LIMIT) },
+                    thing02: { value: truncate_and_replace(content, WX_TEMPLATE_THING_LENGTH_LIMIT) },
                 },
             }),
         },
@@ -111,7 +108,7 @@ async function sendWxMessage(
 
     // TODO: 日后若有多处 DEBUG 需求，应将方法封装到 c.var.logger 中
     if (c.var.globalConfig.DEBUG) {
-        console.log(`href = ${messageUrl.href}, hrefLength=${messageUrl.href.length}`);
+        console.log(`${messageUrl.href}`);
     }
 
     if (!response.ok) {
