@@ -12,6 +12,7 @@ import { renderer } from './renderer';
 import { Env } from '../types';
 import { checkSign, validate } from '../middlewares';
 import sanitizeHtml from 'sanitize-html';
+import { SEND_CONTENT_MAX_LENGTH, SEND_TITLE_MAX_LENGTH } from '../const';
 
 type SkinProps = {
     title: string;
@@ -39,10 +40,10 @@ const b64UrlCodec = z.codec(z.base64url(), z.string(), {
 
 const SkinSchema = z.object({
     title: b64UrlCodec
-        .pipe(z.string().max(128))
+        .pipe(z.string().max(SEND_TITLE_MAX_LENGTH))
         .default('消息推送'),
     message: b64UrlCodec
-        .pipe(z.string().max(4096))
+        .pipe(z.string().max(SEND_CONTENT_MAX_LENGTH))
         .default('无告警信息'),
     timestamp: z
         .string()

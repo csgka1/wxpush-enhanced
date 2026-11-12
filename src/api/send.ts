@@ -6,6 +6,7 @@ import { CHANNEL, type Env } from '../types';
 import { handleSmtpSend } from './smtp';
 import { handleWecomSend } from './wecom';
 import { handleWxSend } from './wxsend';
+import { SEND_CONTENT_MAX_LENGTH, SEND_TITLE_MAX_LENGTH } from '../const';
 
 type SendHandler = typeof handleWxSend;
 
@@ -17,8 +18,8 @@ const sendHandlers: Record<CHANNEL, SendHandler> = {
 
 const sendSchema = z
     .object({
-        title: z.string().max(128),
-        content: z.string().max(4096),
+        title: z.string().max(SEND_TITLE_MAX_LENGTH),
+        content: z.string().max(SEND_CONTENT_MAX_LENGTH),
         channel: z.enum(CHANNEL).optional(),
         acceptChannelFallback: z.boolean().default(true), // fallback to default
     })

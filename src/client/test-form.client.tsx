@@ -1,50 +1,64 @@
 /** @jsxImportSource hono/jsx/dom */
 import { render, useRef, useState } from 'hono/jsx/dom';
+import { SEND_CONTENT_MAX_LENGTH, SEND_TITLE_MAX_LENGTH } from '../const';
 
-type TestFormValues = {
-    title: string;
-    content: string;
-    channel: 'wechat' | 'wecom' | 'smtp';
+type EditableValue = {
+    value: string;
+    length: number;
+    bytes: number;
 };
+
+type Channel = 'wechat' | 'wecom' | 'smtp';
 
 type TestFormProps = {
     token: string;
 };
 
-const initialValues: TestFormValues = {
-    title: '测试标题',
-    content: '这是测试内容',
-    channel: 'wechat',
-};
-
-const emptyValues: TestFormValues = {
-    title: '',
-    content: '',
-    channel: 'wechat',
-};
+function createEditableValue(value: string): EditableValue {
+    return {
+        value,
+        length: value.length,
+        bytes: new TextEncoder().encode(value).length,
+    };
+}
 
 function TestForm({ token }: TestFormProps) {
-    const [values, setValues] = useState(initialValues);
+    const [title, setTitle] = useState(() => createEditableValue('测试标题'));
+    const [content, setContent] = useState(() =>
+        createEditableValue('这是测试内容'),
+    );
+    const [channel, setChannel] = useState<Channel>('wechat');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [responseText, setResponseText] = useState<string | null>(null);
     const submissionLock = useRef(false);
 
-    const updateField = (name: keyof TestFormValues) => (event: Event) => {
+    const updateEditableField =
+        (setValue: (value: EditableValue) => void) => (event: Event) => {
+            const field = event.currentTarget;
+            if (
+                field instanceof HTMLInputElement ||
+                field instanceof HTMLTextAreaElement
+            ) {
+                setValue(createEditableValue(field.value));
+            }
+        };
+
+    const updateChannel = (event: Event) => {
         const field = event.currentTarget;
         if (
-            field instanceof HTMLInputElement ||
-            field instanceof HTMLTextAreaElement ||
-            field instanceof HTMLSelectElement
+            field instanceof HTMLSelectElement &&
+            (field.value === 'wechat' ||
+                field.value === 'wecom' ||
+                field.value === 'smtp')
         ) {
-            setValues((currentValues) => ({
-                ...currentValues,
-                [name]: field.value,
-            }));
+            setChannel(field.value);
         }
     };
 
     const clearForm = () => {
-        setValues(emptyValues);
+        setTitle(createEditableValue(''));
+        setContent(createEditableValue(''));
+        setChannel('wechat');
         setResponseText(null);
     };
 
@@ -57,7 +71,11 @@ function TestForm({ token }: TestFormProps) {
         setResponseText(null);
 
         const payload = Object.fromEntries(
-            Object.entries(values).filter(([, value]) => value.length > 0),
+            Object.entries({
+                title: title.value,
+                content: content.value,
+                channel,
+            }).filter(([, value]) => value.length > 0),
         );
         const headers = new Headers({
             'Content-Type': 'application/json',
@@ -83,12 +101,14 @@ function TestForm({ token }: TestFormProps) {
             setIsSubmitting(false);
         }
     };
-// todo: 为输入框添加字数限制，并同一散落在各处的字数限制常量
+
+
     return (
         <>
             <form
                 id="testForm"
                 method="post"
+                style: 
                 action="/api/send"
                 onSubmit={handleSubmit}
             >
@@ -96,8 +116,8 @@ function TestForm({ token }: TestFormProps) {
                 <select
                     id="channel"
                     name="channel"
-                    value={values.channel}
-                    onInput={updateField('channel')}
+                    value={channel}
+                    onChange={updateChannel}
                 >
                     <option value="wechat">微信公众号 (wechat)</option>
                     <option value="wecom">企业微信群机器人 (wecom)</option>
@@ -109,18 +129,36 @@ function TestForm({ token }: TestFormProps) {
                     id="title"
                     name="title"
                     type="text"
-                    value={values.title}
-                    onInput={updateField('title')}
+                    value={title.value}
+                    onChange={updateEditableField(setTitle)}
                 />
+                <div><small style = {{ 
+                    "padding-left": '5px',
+                    "color": content.length > SEND_CONTENT_MAX_LENGTH ? 'red' : ''
+                    }}>
+                    {title.length} / { SEND_TITLE_MAX_LENGTH } 字符
+                </small></div>
 
                 <label for="content">Markdown 内容 (content)</label>
                 <textarea
                     id="content"
                     name="content"
-                    rows={4}
-                    value={values.content}
-                    onInput={updateField('content')}
+                    rows={10}
+                    value={content.value}
+                    onChange={updateEditableField(setContent)}
                 />
+                <div><small style={{ 
+                    "padding-left": '5px',
+                    "color": content.length > SEND_CONTENT_MAX_LENGTH ? 'red' : ''
+                    }}
+                >
+                    {content.length} / { SEND_CONTENT_MAX_LENGTH } 字符
+                </small></div>
+                <div style = { { "margin-top": '0.2em', "padding-left": '5px', }}>
+                    <small style={{ }}>
+                        { content.bytes } 字节 （某些渠道可能会对超过 {SEND_CONTENT_MAX_LENGTH * 1} 个字节的部分进行截断处理）
+                    </small>
+                </div>
 
                 <div class="test-page__actions">
                     <button id="sendBtn" type="submit" disabled={isSubmitting}>
