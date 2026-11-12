@@ -106,7 +106,6 @@ async function sendWxMessage(
         },
     );
 
-    // TODO: 日后若有多处 DEBUG 需求，应将方法封装到 c.var.logger 中
     if (c.var.globalConfig.DEBUG) {
         console.log(`${messageUrl.href}`);
     }

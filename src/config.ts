@@ -63,19 +63,31 @@ const channelSchemas = {
         WECOM_WEBHOOK_URL: z.url(),
     }),
     [CHANNEL.smtp]: z.object({
-        SMTP_URL: z
-            .string()
-            .min(1)
-            .refine((value) => {
-                try {
-                    parseSmtpsUrl(value);
-                    return true;
-                } catch {
-                    return false;
-                }
-            }, 'Expected an valid SMTPS URL.'),
+        SMTP_URL: z.string().transform((value, ctx) => {
+            try {
+                return parseSmtpsUrl(value);
+            } catch (error) {
+                ctx.issues.push({
+                    code: 'custom',
+                    message:
+                        error instanceof Error
+                            ? error.message
+                            : 'Invalid SMTP_URL configuration.',
+                    input: value,
+                });
+                return z.NEVER;
+            }
+        }),
         SMTP_FROM: z.email(),
-        SMTP_TO: z.string().min(1),
+        SMTP_TO: z
+            .string()
+            .transform((value) =>
+                value
+                    .split('|')
+                    .map((address) => address.trim())
+                    .filter(Boolean),
+            )
+            .pipe(z.array(z.string()).min(1).max(50)),
     }),
 } satisfies Record<CHANNEL, z.ZodType>;
 

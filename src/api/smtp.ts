@@ -1,79 +1,58 @@
 import { WorkerMailer } from '@workermailer/smtp';
 import type { Context } from 'hono';
 
-import { parseSmtpsUrl } from '../config';
+import { validateChannelEnv } from '../config';
+import { CHANNEL } from '../types';
 import type { Env } from '../types';
-
-const MAX_RECIPIENTS = 50;
+import { ZodError } from 'zod';
 
 export async function handleSmtpSend(
     c: Context<Env>,
     title: string,
     content: string,
 ) {
-    const { SMTP_URL, SMTP_FROM, SMTP_TO } = c.env;
-    const recipients =
-        SMTP_TO?.split('|')
-            .map((address) => address.trim())
-            .filter(Boolean) ?? [];
-
-    let smtpConnection;
+    let config;
     try {
-        if (!SMTP_URL) {
-            throw new Error('SMTP_URL is required.');
-        }
-        smtpConnection = parseSmtpsUrl(SMTP_URL);
+        config = validateChannelEnv(CHANNEL.smtp, c).config;
     } catch (error) {
-        console.error('[smtp] Invalid SMTP configuration.');
-        return c.json(
-            {
-                msg:
-                    error instanceof Error
-                        ? error.message
-                        : 'Invalid SMTP_URL configuration.',
-            },
-            500,
-        );
-    }
+        if (!(error instanceof ZodError)) {
+            throw error;
+        }
 
-    if (
-        !SMTP_FROM ||
-        !SMTP_TO ||
-        !recipients.length ||
-        recipients.length > MAX_RECIPIENTS
-    ) {
-        console.error('[smtp] Invalid SMTP sender or recipient configuration.');
-        return c.json(
-            {
-                msg: 'Invalid SMTP configuration: configure SMTP_FROM and 1-50 SMTP_TO recipients.',
-            },
-            500,
-        );
+        console.error({
+            event: 'smtp_configuration_error',
+            issues: error.issues.map(({ code, path, message }) => ({
+                code,
+                path,
+                message,
+            })),
+        });
+        return c.json({ msg: 'Invalid SMTP configuration.' }, 500);
     }
 
     let mailer: WorkerMailer | undefined;
     try {
         mailer = await WorkerMailer.connect({
-            host: smtpConnection.hostname,
-            port: smtpConnection.port,
+            host: config.SMTP_URL.hostname,
+            port: config.SMTP_URL.port,
             secure: true,
             startTls: false,
             authType: ['plain', 'login'],
             credentials: {
-                username: smtpConnection.username,
-                password: smtpConnection.password,
+                username: config.SMTP_URL.username,
+                password: config.SMTP_URL.password,
             },
         });
 
         await mailer.send({
-            from: SMTP_FROM,
-            to: recipients,
+            from: config.SMTP_FROM,
+            to: config.SMTP_TO,
             subject: title.replace(/[\r\n]+/g, ' '),
             text: content,
         });
 
         return c.json({
-            msg: `Successfully sent email to ${recipients.length} recipient(s).`,
+            msg: `Successfully sent email to ${config.SMTP_TO.length} recipient(s).`,
         });
     } catch (error) {
         console.error('[smtp] Failed to send email:', error);

@@ -1,8 +1,7 @@
-import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
-import { type GlobalEnv, validateGlobalEnv } from '../config';
+import { validate } from '../middlewares';
 import { CHANNEL, type Env } from '../types';
 import { handleSmtpSend } from './smtp';
 import { handleWecomSend } from './wecom';
@@ -27,7 +26,7 @@ const sendSchema = z
 
 export const send = new Hono<Env>().post(
     '/',
-    zValidator('json', sendSchema),
+    validate('json', sendSchema),
     async (c) => {
         const {
             title,
@@ -35,20 +34,7 @@ export const send = new Hono<Env>().post(
             channel: requestedChannel,
             acceptChannelFallback,
         } = c.req.valid('json');
-        let globalConfig: GlobalEnv;
-
-        try {
-            globalConfig = validateGlobalEnv(c);
-        } catch (error) {
-            console.error(
-                '[send] Invalid global environment configuration:',
-                error,
-            );
-            return c.json(
-                { msg: 'Invalid global environment configuration.' },
-                500,
-            );
-        }
+        const globalConfig = c.var.globalConfig;
 
         const channel =
             requestedChannel === undefined

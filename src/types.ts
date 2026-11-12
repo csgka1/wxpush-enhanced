@@ -22,6 +22,7 @@ export type EnvVar = {
 export type MetaData = {
     pageTitle?: string;
     globalConfig: GlobalEnv;
+    requestId: string;
 };
 
 export interface Env extends LibEnv {

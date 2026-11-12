@@ -9,9 +9,8 @@ import {
 import { z } from 'zod';
 import { Context, type Hono } from 'hono';
 import { renderer } from './renderer';
-import { zValidator } from '@hono/zod-validator';
 import { Env } from '../types';
-import { checkSign } from '../middlewares';
+import { checkSign, validate } from '../middlewares';
 import sanitizeHtml from 'sanitize-html';
 
 type SkinProps = {
@@ -91,17 +90,7 @@ export default function RegisterSkinPage(app: Hono<Env>) {
     app.get(
         '/skin',
         renderer,
-        zValidator('query', SkinSchema, (result, c) => {
-            if (!result.success) {
-                // todo: only DEBUG
-                console.log(
-                    `${c.req.path} has met error during Zod Validation:`,
-                );
-                console.log('ERROR:\n', result.error);
-                console.log('DATA:\n', result.data);
-                console.log(`REQ:`, c.req);
-            }
-        }),
+        validate('query', SkinSchema),
         checkSign<SkinPageParam>(
             (c) => c.req.valid('query').sign,
             (c) => signSkinParam(c.req.valid('query'), c),

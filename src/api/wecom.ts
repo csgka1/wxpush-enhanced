@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
 
-import type { Env } from '../types';
+import { CHANNEL, type Env } from '../types';
 import { truncateUtf8 } from '../util';
+import { validateChannelEnv } from '../config';
 
 export function formatWecomMarkdown(title: string, content: string): string {
     return `# ${title}\n\n${content}`;
@@ -17,6 +18,8 @@ export async function handleWecomSend(
     title: string,
     content: string,
 ) {
+    const conf = validateChannelEnv(CHANNEL.wecom, c).config;
+
     const WECOM_BYTES_LIMIT = 4096;
     const md = formatWecomMarkdown(title, content);
     let truncatedMd = md;
@@ -26,16 +29,8 @@ export async function handleWecomSend(
         truncatedMd = truncateUtf8(md, WECOM_BYTES_LIMIT - replacerBytes.length) + replacer;
     }
 
-    const url = c.env.WECOM_WEBHOOK_URL;
-    if (!url) {
-        return c.json(
-            { msg: 'Missing required configuration: WECOM_WEBHOOK_URL' },
-            500,
-        );
-    }
-
     try {
-        const response = await fetch(url, {
+        const response = await fetch(conf.WECOM_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json;charset=utf-8' },
             body: JSON.stringify({

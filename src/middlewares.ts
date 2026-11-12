@@ -1,4 +1,9 @@
-import { type Context, type MiddlewareHandler } from 'hono';
+import { zValidator, type Hook } from '@hono/zod-validator';
+import {
+    type Context,
+    type MiddlewareHandler,
+    type ValidationTargets,
+} from 'hono';
 
 import { timingSafeEqual } from 'hono/utils/buffer';
 
@@ -6,7 +11,7 @@ import type { Env } from './types';
 import { HTTPException } from 'hono/http-exception';
 import { bearerAuth } from 'hono/bearer-auth';
 import * as Config from './config';
-import { ZodError } from 'zod';
+import { z, ZodError, type ZodType } from 'zod';
 
 export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
     const authQuery = c.req.query('token');
@@ -40,6 +45,42 @@ export const installGlobalConfig: MiddlewareHandler<Env> = async (c, next) => {
     }
     await next();
 };
+
+export function validate<
+    Target extends keyof ValidationTargets,
+    Schema extends ZodType,
+>(target: Target, schema: Schema) {
+    const hook: Hook<z.output<Schema>, Env, string, Target, object, Schema> = (
+        result,
+        c,
+    ) => {
+        if (result.success || c.var.globalConfig.DEBUG) {
+            return;
+        }
+
+        console.error({
+            event: 'zod_validation_error',
+            requestId: c.var.requestId,
+            cfRay: c.req.header('Cf-Ray'),  // 关联 Cloudflare 请求。对于非 Cloudflare Workers 环境，此项不存在。
+            method: c.req.method,
+            path: c.req.path,
+            target: result.target,
+            issues: result.error.issues.map(({ code, path, message }) => ({
+                code,
+                path,
+                message,
+            })),
+        });
+
+        return c.json({ success: false, message: 'Invalid request', requestId: c.var.requestId }, 400);
+    };
+
+    return zValidator<Schema, Target, Env, string, typeof hook>(
+        target,
+        schema,
+        hook,
+    );
+}
 
 export const checkSign = <Query>(
     getClientSign: (
