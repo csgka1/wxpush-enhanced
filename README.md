@@ -1,22 +1,24 @@
-# WXPush - 微信消息推送服务 (Cloudflare Workers)
+# WXPushEnhanced - 微信消息推送服务 (Cloudflare Workers)
 
 这是一个基于 [Cloudflare Workers](https://workers.cloudflare.com/) 搭建的轻量级消息推送服务，支持微信公众号、企业微信群机器人和第三方 SMTP 邮件。
 
 ## ✨ 特性
 
-✅ 完全免费  
-✅ 每天 10 万次额度，个人用不完  
-✅ 真正的微信原生弹窗 + 声音提醒  
-✅ 支持多用户  
-✅ 跳转稳定  
+✅ 完全免费
+✅ 每天 10 万次额度，个人用不完
+✅ 真正的微信原生弹窗 + 声音提醒
+✅ 支持多用户
+✅ 跳转稳定
 ✅ 支持企业微信群机器人 Webhook<br>
-✅ 支持第三方 SMTP 邮件<br>
-✅ 可无限换皮肤 (使用项目[wxpushSkin](https://github.com/frankiejun/wxpushSkin))  
-✅ 支持docker部署
+✅ 支持 SMTP 邮件<br>
+✅ 可无限换皮肤 (使用项目[wxpushSkin](https://github.com/frankiejun/wxpushSkin))
 
 ## 🎬 视频教学
 
+
 我们制作了详细的视频教程，手把手教您如何完成所有部署步骤。如果您偏爱视频指导，请点击下方链接观看：
+
+**注：该视频教程源自本项目的上游项目 [WXPush](https://githu.com/frankiejun/wxpush) 开发，如有和本项目文档存在冲突之处，以本项目文档为准。**
 
 [<img src="https://look.pics.cloudns.ch/img/极简微信消息推送服务-封面.jpg" alt="点击观看视频教程" width="480">](https://youtu.be/sE1Kcol_XRs?si=G-UbUGlMhyysv-US)  
 
@@ -25,53 +27,8 @@
 *点击上方图片或链接，即可跳转到 YouTube 观看视频教程。*
 
 
+## 🚀 部署指南：通过关联 GitHub 仓库自动部署
 
-
-## 🚀 部署指南
-
-我们提供多种简单的部署方式，您可以根据自己的需求选择其中一种。
-
-### 方法一：直接粘贴代码到 Cloudflare (最简单)
-
-这种方法无需任何本地开发环境，只需复制粘贴即可完成部署。
-
-1.  **登录 Cloudflare 仪表板**
-    *   打开浏览器，访问 [https://dash.cloudflare.com/](https://dash.cloudflare.com/) 并登录。
-
-2.  **创建 Worker 服务**
-    *   在左侧菜单中，选择 **Workers 和 Pages**。
-    *   点击 **创建应用程序**，然后选择 **创建 Worker**。
-    *   为您的 Worker 指定一个全局唯一的名称 (例如 `my-wxpush-service`)，然后点击 **部署**。
-
-3.  **粘贴代码**
-    *   部署完成后，点击 **编辑代码** 进入在线代码编辑器。
-    *   删除编辑器中所有的默认代码。
-    *   将项目 `src/index.js` 文件中的全部内容复制并粘贴到编辑器中。
-
-4.  **保存并部署**
-    *   点击编辑器右上角的 **保存并部署** 按钮。
-
-5.  **配置环境变量 (重要)**
-    *   返回 Worker 的主管理页面，进入 **设置** > **变量**。
-    *   在 **环境变量** 部分，点击 **添加变量**，按需配置以下变量：
-        *   `API_TOKEN`: 用于接口调用的访问令牌，请设置一个足够复杂的随机字符串。
-        *   `WX_APPID`: 微信公众号 AppID (使用 `wechat` 渠道时需要)。
-        *   `WX_SECRET`: 微信公众号 AppSecret (使用 `wechat` 渠道时需要)。
-        *   `WX_USERID`: 默认接收消息用户的 OpenID，多个用户请用 `|` 分隔 (使用 `wechat` 渠道时需要)。
-        *   `WX_TEMPLATE_ID`: 微信模板消息 ID (使用 `wechat` 渠道时需要)。
-        *   `WX_BASE_URL`: 点击模板消息后跳转的基础 URL (使用 `wechat` 渠道时需要)。
-        *   `WECOM_WEBHOOK_URL`: 企业微信群机器人的 Webhook URL (使用 `wecom` 渠道时需要，请妥善保管)。
-        *   `SMTP_URL`: 第三方 SMTPS 连接 URL，格式为 `smtps://用户名:密码@主机名:465`。用户名和密码中的特殊字符须进行 URL 百分号编码。
-        *   `SIGN_SECRET`: HMAC签名密钥，用于防止接口滥用。
-        *   `SMTP_FROM`: 已获服务商授权的发件人地址。
-        *   `SMTP_TO`: 固定收件人地址，多个收件人用 `|` 分隔，最多 50 个。
-        *   `DEFAULT_CHANNEL`: 请求未传 `channel` 时采用的默认渠道，只能设置为 `wechat`、`wecom` 或 `smtp`。
-    *   **注意**：添加变量时，请确保勾选 **加密** 选项，以保护您的凭证安全。
-
-
-### 方法三：通过关联 GitHub 仓库自动部署
-
-如果您希望通过 Git 进行版本控制和持续集成，推荐使用此方法。
 
 1.  **Fork 或克隆项目**
     *   首先，将本项目 Fork 到您自己的 GitHub 账户，或者克隆后推送到您自己的新仓库。
@@ -87,12 +44,27 @@
     *   **项目名称**：为您项目指定一个名称。
     *   **生产分支**：选择您希望部署的分支 (通常是 `main` 或 `master`)。
     *   **框架预设**：选择 `None`。
-    *   **构建设置**：将所有构建相关的字段 (如构建命令、输出目录) 留空。
+    *   **构建设置**：构建命令: `pnpm run build`， 部署命令 `pnpm exec wrangler deploy`
     *   **根目录**：保持默认的 `/` 即可。
 
-5.  **添加环境变量**
-    *   在配置页面的 **环境变量** 部分，添加与 **方法一** 中相同的 `API_TOKEN` 以及所需渠道的配置。
-    *   同样，请务必为每个变量勾选 **加密** 选项。
+    
+5.  **配置环境变量 (重要)**
+    *   返回 Worker 的主管理页面，进入 **设置** > **变量**。
+    *   在 **环境变量** 部分，点击 **添加变量**，按需配置以下变量：
+        *   `API_TOKEN`: 用于接口调用的访问令牌，请设置一个足够复杂的随机字符串。
+        *   `WX_APPID`: 微信公众号 AppID (使用 `wechat` 渠道时需要)。
+        *   `WX_SECRET`: 微信公众号 AppSecret (使用 `wechat` 渠道时需要)。
+        *   `WX_USERID`: 默认接收消息用户的 OpenID，多个用户请用 `|` 分隔 (使用 `wechat` 渠道时需要)。
+        *   `WX_TEMPLATE_ID`: 微信模板消息 ID (使用 `wechat` 渠道时需要)。
+        *   `WX_BASE_URL`: 点击模板消息后跳转的基础 URL (使用 `wechat` 渠道时需要)。
+        *   `WECOM_WEBHOOK_URL`: 企业微信群机器人的 Webhook URL (使用 `wecom` 渠道时需要，请妥善保管)。
+        *   `SMTP_URL`: 第三方 SMTPS 连接 URL，格式为 `smtps://用户名:密码@主机名:465`。用户名和密码中的特殊字符须进行 URL 百分号编码。
+        *   `SIGN_SECRET`: HMAC签名密钥，用于防止接口滥用，需要设置为一个足够复杂的十六进制字符串。
+        *   `SMTP_FROM`: 已获服务商授权的发件人地址。
+        *   `SMTP_TO`: 固定收件人地址，多个收件人用 `|` 分隔，最多 50 个。
+        *   `DEFAULT_CHANNEL`: 请求未传 `channel` 时采用的默认渠道，只能设置为 `wechat`、`wecom` 或 `smtp`。
+    *   **注意**：添加变量时，请确保勾选 **加密** 选项，以保护您的凭证安全。
+
 
 6.  **保存并部署**
     *   点击 **保存并部署**。Cloudflare 会自动从您的仓库拉取代码并完成部署。
@@ -102,7 +74,7 @@
 
 ### 消息展示页鉴权
 
-`/skin` 页面要求所有展示参数都带有有效的 `salt` 签名。签名由服务端使用独立配置的 `HMAC_KEY` 作为密钥，对标题、内容和日期按 `JSON.stringify([title, message, date])` 顺序生成 HMAC-SHA-256。通过下方 API 发送消息时，服务会自动生成签名并附加到微信跳转链接；不要将 `HMAC_KEY` 暴露给浏览器或手动分享。
+为了防止滥用，`/skin` 页面要求所有展示参数都带有有效的 `sign` 签名。签名由服务端使用独立配置的 `HMAC_KEY` 作为密钥，对标题、内容和日期等被保护字段按 key 字典序组装成 Query String 并计算 HMAC-SHA-256。通过下方 API 发送消息时，服务会自动生成签名并附加到微信跳转链接；不要将 `HMAC_KEY` 暴露给浏览器或手动分享。
 
 ## ⚙️ API 使用方法
 
@@ -142,7 +114,7 @@ https://<您的Worker地址>/api/send
 }
 ```
 
-企业微信渠道会将标题作为 Markdown 一级标题，并与 `content` 一并发送；消息内容连同标题不得超过 4096 个 UTF-8 字节。微信公众号渠道的 AppID、AppSecret、接收用户、模板 ID 和跳转 URL 均从 Worker 环境变量读取，请求体不再接受这些配置项。
+企业微信渠道会将标题作为 Markdown 一级标题，并与 `content` 一并发送；消息内容连同标题不得超过 4096 个 UTF-8 字节。微信公众号渠道的 AppID、AppSecret、接收用户、模板 ID 和跳转 URL 均从 Worker 环境变量读取。
 请求省略 `channel` 时始终尝试使用 `DEFAULT_CHANNEL`，无论 `acceptChannelFallback` 的值为何。显式指定了未启用的渠道时，若 `acceptChannelFallback` 为 `true`（默认值）则尝试回退至默认渠道；设为 `false` 则返回 `HTTP 400`。默认渠道必须是已启用的渠道。
 SMTP 渠道通过 `SMTP_URL` 配置 SMTPS 连接，将 `title` 用作邮件主题、`content` 用作纯文本正文，发件人由 `SMTP_FROM` 指定，收件人固定从 `SMTP_TO` 读取，不接受请求指定收件人。请仅发送用户预期收到的事务通知，不得发送垃圾邮件或营销邮件，并遵守[Cloudflare 可接受使用政策](https://www.cloudflare.com/terms/)及服务商的发送政策。
 
@@ -225,6 +197,58 @@ SMTP 邮件示例：
 
 欢迎任何形式的贡献！如果您有好的想法或发现了 Bug，请随时提交 Pull Request 或创建 Issue。
 
-## 📜 许可证
+### 开发
 
-本项目采用 [MIT License](LICENSE) 开源许可证。
+Web 框架: Hono；
+
+前端技术栈：基于 Hono 的 JSX；
+
+环境配置: node.js + pnpm + vite
+
+本地部署: 
+- 安装：run `pnpm i`
+
+- 本地变量配置：参考上文的环境变量配置，将变量配置在 `/.dev.vars` 中。项目提供了一个 `.dev.vars.example` 供参考。
+
+- 调试： `pnpm dev`
+
+- DEBUG in Vscode:
+  `.vscode/launch.json`:
+  ```json
+    {
+      "version": "0.2.0",
+      "configurations": [
+        {
+          "name": "wxpush",
+          "type": "node",
+          "request": "attach",
+          "websocketAddress": "ws://localhost:9229/wxpush",
+          "resolveSourceMapLocations": null,
+          "attachExistingChildren": false,
+          "autoAttachChildProcesses": false,
+          "sourceMaps": true
+        }
+      ],
+      "compounds": [
+        {
+          "name": "Debug Workers",
+          "configurations": ["wxpush"],
+          "stopAll": true
+        }
+      ]
+    }
+  ```
+- 编译及预览：运行 `pnpm run preview` 能够通过 wrangler 将本地当前工作区代码编译并上传至 Cloudflare 预览分支。
+
+- 该项目拥有代码格式和 lint 规范，并在编译时自动检查。运行 `pnpm run format` 和 `pnpm run lint` 以进行格式检查。
+
+
+
+
+## 二次开发说明
+本项目基于 [WXPush](https://githu.com/frankiejun/wxpush) 进行二次开发。由于改动过大（使用了 `Hono` 框架重构，并更改了接口字段），故 Fork 为单独的版本。
+
+## 📜 许可证
+本项目包含来自 [WXPush](https://githu.com/frankiejun/wxpush)的代码，许可证文本位于 `/LICENSE-MIT` 中。
+
+本项目采用 [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt) 开源许可证。
