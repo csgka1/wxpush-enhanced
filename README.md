@@ -182,12 +182,12 @@ SMTP 邮件示例：
 
 **设置方法**：
 
-1. 无需修改代码，`wrangler.toml` 中已内置每日触发的 Cron Trigger。
+1. 无需修改代码，`wrangler.toml` 中已内置每日触发的 Cron Trigger
 2. 在 Cloudflare Worker 的 **设置** > **变量** 中添加环境变量：
-    *   `ALIVE_DAYS`: 保活间隔天数，例如 `30` 表示每 30 天发送一次测试消息。
+    *   `ALIVE_DAYS`: 保活间隔天数，例如 `30` 表示每 30 天发送一次测试消息，取值须为 1 ~ 3650 的整数。
 3. 保存并重新部署即可生效。
 
-**说明**：
+**运行方式**：
 
 *   **不设置 `ALIVE_DAYS` 则不会运行保活心跳**，行为与之前完全一致。
 *   保活消息会发送给 `WX_USERID` 中配置的所有用户，标题为"保活测试"。
@@ -250,9 +250,6 @@ Web 框架: Hono；
 
 ## 二次开发说明
 本项目基于 [WXPush](https://github.com/frankiejun/wxpush) 进行二次开发。由于改动过大，故 Fork 为单独的版本。
-
-## 二次开发说明
-本项目基于 [WXPush](https://githu.com/frankiejun/wxpush) 进行二次开发。由于改动过大（使用了 `Hono` 框架重构，并更改了接口字段），故 Fork 为单独的版本。
 
 ## 📜 许可证
 本项目包含来自 [WXPush](https://github.com/frankiejun/wxpush)的代码，许可证文本位于 `/LICENSE-MIT` 中。
