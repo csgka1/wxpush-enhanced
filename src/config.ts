@@ -3,6 +3,27 @@ import { z } from 'zod';
 import { CHANNEL, Env } from './types';
 import { Context } from 'hono';
 
+/**
+ * 汇总 ZodError 中的 issues，避免日志里输出整段 schema 信息。
+ */
+export function summarizeZodIssues(error: z.ZodError) {
+    return error.issues.map(({ code, path, message }) => ({
+        code,
+        path,
+        message,
+    }));
+}
+
+/**
+ * 把 `|` 或 `,` 分隔的环境变量解析为去掉空项后的数组。
+ * 
+ * # Example
+ * - `"a, b, c"` => `['a', 'b', 'c']`
+ * 
+ * - `"a | b | c"` => `['a', 'b', 'c']`
+ */
+const splitEnvArray = (s: string) => s.replaceAll(",", "|").split("|").map(String.prototype.trim).filter(Boolean);
+
 type SmtpsConnection = {
     hostname: string;
     port: 465;
@@ -55,7 +76,8 @@ const channelSchemas = {
     [CHANNEL.wechat]: z.object({
         WX_APPID: z.string().min(1),
         WX_SECRET: z.string().min(1),
-        WX_USERID: z.string().min(1),
+        WX_USERID: z.string().transform(splitEnvArray)
+            .pipe(z.array(z.string()).min(1)),
         WX_TEMPLATE_ID: z.string().min(1),
         WX_BASE_URL: z.url(),
     }),
@@ -79,15 +101,7 @@ const channelSchemas = {
             }
         }),
         SMTP_FROM: z.email(),
-        SMTP_TO: z
-            .string()
-            .transform((value) =>
-                value
-                    .split('|')
-                    .map((address) => address.trim())
-                    .filter(Boolean),
-            )
-            .pipe(z.array(z.string()).min(1).max(50)),
+        SMTP_TO: z.string().transform(splitEnvArray).pipe(z.array(z.string()).min(1).max(50)),
     }),
 } satisfies Record<CHANNEL, z.ZodType>;
 
@@ -125,7 +139,7 @@ const globalEnvScheme = z
             .string()
             .trim()
             .min(1)
-            .transform((s) => s.split(',').map((value) => value.trim()))
+            .transform(splitEnvArray)
             .pipe(z.array(z.enum(CHANNEL)).min(1))
             .refine(
                 (channels) => new Set(channels).size === channels.length,
@@ -150,8 +164,8 @@ const globalEnvScheme = z
  * @throws { z.ZodError }
  *
  */
-export function validateGlobalEnv(c: Context<Env>) {
-    return globalEnvScheme.parse(c.env);
+export function validateGlobalEnv(env: Env["Bindings"]) {
+    return globalEnvScheme.parse(env);
 }
 
 export type GlobalEnv = z.infer<typeof globalEnvScheme>;

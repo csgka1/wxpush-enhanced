@@ -1,7 +1,7 @@
 import { WorkerMailer } from '@workermailer/smtp';
 import type { Context } from 'hono';
 
-import { validateChannelEnv } from '../config';
+import { summarizeZodIssues, validateChannelEnv } from '../config';
 import { CHANNEL } from '../types';
 import type { Env } from '../types';
 import { ZodError } from 'zod';
@@ -21,11 +21,7 @@ export async function handleSmtpSend(
 
         console.error({
             event: 'smtp_configuration_error',
-            issues: error.issues.map(({ code, path, message }) => ({
-                code,
-                path,
-                message,
-            })),
+            issues: summarizeZodIssues(error),
         });
         return c.json({ msg: 'Invalid SMTP configuration.' }, 500);
     }

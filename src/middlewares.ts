@@ -31,7 +31,7 @@ export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
 
 export const installGlobalConfig: MiddlewareHandler<Env> = async (c, next) => {
     try {
-        const config = Config.validateGlobalEnv(c);
+        const config = Config.validateGlobalEnv(c.env);
         c.set('globalConfig', config);
     } catch (err) {
         if (err instanceof ZodError) {
