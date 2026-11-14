@@ -6,6 +6,7 @@ import { RegisterApi } from './api';
 import { bodyLimit } from 'hono/body-limit';
 import RegisterSkinPage from './pages/skin';
 import RegisterTestPage from './pages/test';
+import { createScheduledHandler } from './scheduled';
 
 const app = new Hono<Env>();
 
@@ -22,4 +23,7 @@ RegisterApi(app);
 RegisterSkinPage(app);
 RegisterTestPage(app);
 
-export default app;
+export default {
+    fetch: app.fetch,
+    scheduled: createScheduledHandler(app),
+} satisfies ExportedHandler<Env['Bindings']>;

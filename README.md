@@ -210,6 +210,9 @@ Web 框架: Hono；
 
 - 本地变量配置：参考上文的环境变量配置，将变量配置在 `/.dev.vars` 中。项目提供了一个 `.dev.vars.example` 供参考。
 
+- 生成 Cloudflare 运行时类型标注：`pnpm run cf-typegen` 
+  此命令会依据 `wrangler.toml` 与 `.dev.vars` 生成根目录的 `worker-configuration.d.ts`（环境变量绑定 + workerd 运行时全局类型），`pnpm install` 时由 `prepare` 自动执行一次。修改了 `wrangler.toml` 的绑定或 `.dev.vars` 的键名后需要重新生成；在 CI 流程中，使用 `pnpm run cf-typegen:check` 校验它是否已过期。
+
 - 调试： `pnpm dev`
 
 - DEBUG in Vscode:
@@ -246,9 +249,12 @@ Web 框架: Hono；
 
 
 ## 二次开发说明
+本项目基于 [WXPush](https://github.com/frankiejun/wxpush) 进行二次开发。由于改动过大，故 Fork 为单独的版本。
+
+## 二次开发说明
 本项目基于 [WXPush](https://githu.com/frankiejun/wxpush) 进行二次开发。由于改动过大（使用了 `Hono` 框架重构，并更改了接口字段），故 Fork 为单独的版本。
 
 ## 📜 许可证
-本项目包含来自 [WXPush](https://githu.com/frankiejun/wxpush)的代码，许可证文本位于 `/LICENSE-MIT` 中。
+本项目包含来自 [WXPush](https://github.com/frankiejun/wxpush)的代码，许可证文本位于 `/LICENSE-MIT` 中。
 
 本项目采用 [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt) 开源许可证。

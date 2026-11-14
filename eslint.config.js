@@ -4,7 +4,12 @@ import { defineConfig } from 'eslint/config';
 
 export default defineConfig(
     {
-        ignores: ['dist/**', 'node_modules/**', '.wrangler/**'],
+        ignores: [
+            'dist/**',
+            'node_modules/**',
+            '.wrangler/**',
+            'worker-configuration.d.ts',
+        ],
     },
     {
         files: ['**/*.{ts,tsx}'],

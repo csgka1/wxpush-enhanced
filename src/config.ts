@@ -146,6 +146,7 @@ const globalEnvScheme = z
                 'ENABLED_CHANNELS must not contain duplicates.',
             ),
         DEBUG: z.string().transform(Number).transform(Boolean).default(false),
+        ALIVE_DAYS: z.string().transform(Number).optional().pipe(z.number().positive().min(1).max(3650).int()),
     })
     .superRefine(({ DEFAULT_CHANNEL, ENABLED_CHANNELS }, ctx) => {
         if (DEFAULT_CHANNEL && !ENABLED_CHANNELS.includes(DEFAULT_CHANNEL)) {
