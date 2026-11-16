@@ -1,0 +1,2 @@
+export const SEND_TITLE_MAX_LENGTH = 128;
+export const SEND_CONTENT_MAX_LENGTH = 4096;

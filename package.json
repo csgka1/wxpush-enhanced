@@ -1,0 +1,44 @@
+{
+  "name": "wxpush",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "format": "$npm_execpath exec prettier --write ./src",
+    "format:check": "$npm_execpath exec prettier --check ./src",
+    "lint": "$npm_execpath exec eslint .",
+    "prepare": "$npm_execpath exec wrangler types --env-interface CloudflareBindings",
+    "build": "$npm_execpath run format && $npm_execpath run lint && vite build",
+    "vite-preview": "$npm_execpath run build && vite preview",
+    "preview": "$npm_execpath run build && wrangler preview",
+    "deploy": "$npm_execpath run build && wrangler deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "cf-typegen:check": "wrangler types --env-interface CloudflareBindings --check"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cloudflare/vite-plugin": "^1.44.0",
+    "@hono/zod-validator": "^0.9.1",
+    "@workermailer/smtp": "^0.2.1",
+    "hono": "^4.13.16",
+    "marked": "^18.1.3",
+    "sanitize-html": "^2.18.1",
+    "vite": "^8.1.4",
+    "vite-ssr-components": "^0.8.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/sanitize-html": "^2.16.2",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
+    "eslint": "^10.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.156.2"
+  }
+}
