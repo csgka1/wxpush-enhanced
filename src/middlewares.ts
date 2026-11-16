@@ -61,7 +61,7 @@ export function validate<
         console.error({
             event: 'zod_validation_error',
             requestId: c.var.requestId,
-            cfRay: c.req.header('Cf-Ray'),  // 关联 Cloudflare 请求。对于非 Cloudflare Workers 环境，此项不存在。
+            cfRay: c.req.header('Cf-Ray'), // 关联 Cloudflare 请求。对于非 Cloudflare Workers 环境，此项不存在。
             method: c.req.method,
             path: c.req.path,
             target: result.target,
@@ -72,7 +72,14 @@ export function validate<
             })),
         });
 
-        return c.json({ success: false, message: 'Invalid request', requestId: c.var.requestId }, 400);
+        return c.json(
+            {
+                success: false,
+                message: 'Invalid request',
+                requestId: c.var.requestId,
+            },
+            400,
+        );
     };
 
     return zValidator<Schema, Target, Env, string, typeof hook>(

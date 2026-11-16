@@ -1,11 +1,6 @@
 import { marked } from 'marked';
 import { Script } from 'vite-ssr-components/hono';
-import {
-    b64Decode,
-    b64Encode,
-    getBeijingTime,
-    hmac,
-} from '../util';
+import { b64Decode, b64Encode, getBeijingTime, hmac } from '../util';
 import { z } from 'zod';
 import { Context, type Hono } from 'hono';
 import { renderer } from './renderer';
@@ -21,22 +16,21 @@ type SkinProps = {
     truncatedCount: number;
 };
 
-
 const b64UrlCodec = z.codec(z.base64url(), z.string(), {
-        decode: (value, ctx) => {
-            try {
-                return b64Decode(value, "string", "base64url");
-            } catch {
-                ctx.issues.push({
-                    code: 'custom',
-                    message: 'Expected valid Base64URL-encoded UTF-8 text.',
-                    input: value,
-                });
-                return z.NEVER;
-            }
-        },
-        encode: (s) => b64Encode(s, "base64url"),
-    });
+    decode: (value, ctx) => {
+        try {
+            return b64Decode(value, 'string', 'base64url');
+        } catch {
+            ctx.issues.push({
+                code: 'custom',
+                message: 'Expected valid Base64URL-encoded UTF-8 text.',
+                input: value,
+            });
+            return z.NEVER;
+        }
+    },
+    encode: (s) => b64Encode(s, 'base64url'),
+});
 
 const SkinSchema = z.object({
     title: b64UrlCodec
@@ -174,13 +168,22 @@ function Skin({ title, message, date, truncatedCount }: SkinProps) {
                         dangerouslySetInnerHTML={{ __html: parsedMarkdown }}
                     />
 
-                    <div>{ truncatedCount > 0 ? 
-                        (<div class="info-content">
-                            <br />
-                            <b><i> ... 由于内容过长，消息被截断了 { truncatedCount } 字符。</i></b>
-                        </div>)
-                        : ""
-                    }</div>
+                    <div>
+                        {truncatedCount > 0 ? (
+                            <div class="info-content">
+                                <br />
+                                <b>
+                                    <i>
+                                        {' '}
+                                        ... 由于内容过长，消息被截断了{' '}
+                                        {truncatedCount} 字符。
+                                    </i>
+                                </b>
+                            </div>
+                        ) : (
+                            ''
+                        )}
+                    </div>
                 </div>
 
                 <div class="info-card">

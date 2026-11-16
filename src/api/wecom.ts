@@ -25,8 +25,10 @@ export async function handleWecomSend(
     let truncatedMd = md;
     if (Buffer.from(md).length >= WECOM_BYTES_LIMIT) {
         const replacer = ' ...[消息过长被截断]';
-        const replacerBytes=Buffer.from(replacer);
-        truncatedMd = truncateUtf8(md, WECOM_BYTES_LIMIT - replacerBytes.length) + replacer;
+        const replacerBytes = Buffer.from(replacer);
+        truncatedMd =
+            truncateUtf8(md, WECOM_BYTES_LIMIT - replacerBytes.length) +
+            replacer;
     }
 
     try {

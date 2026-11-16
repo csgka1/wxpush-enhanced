@@ -102,14 +102,12 @@ function TestForm({ token }: TestFormProps) {
         }
     };
 
-
     return (
         <>
             <form
                 id="testForm"
                 method="post"
-                style: 
-                action="/api/send"
+                style:action="/api/send"
                 onSubmit={handleSubmit}
             >
                 <label for="channel">发送渠道 (channel)</label>
@@ -132,12 +130,19 @@ function TestForm({ token }: TestFormProps) {
                     value={title.value}
                     onChange={updateEditableField(setTitle)}
                 />
-                <div><small style = {{ 
-                    "padding-left": '5px',
-                    "color": content.length > SEND_CONTENT_MAX_LENGTH ? 'red' : ''
-                    }}>
-                    {title.length} / { SEND_TITLE_MAX_LENGTH } 字符
-                </small></div>
+                <div>
+                    <small
+                        style={{
+                            'padding-left': '5px',
+                            color:
+                                content.length > SEND_CONTENT_MAX_LENGTH
+                                    ? 'red'
+                                    : '',
+                        }}
+                    >
+                        {title.length} / {SEND_TITLE_MAX_LENGTH} 字符
+                    </small>
+                </div>
 
                 <label for="content">Markdown 内容 (content)</label>
                 <textarea
@@ -147,16 +152,23 @@ function TestForm({ token }: TestFormProps) {
                     value={content.value}
                     onChange={updateEditableField(setContent)}
                 />
-                <div><small style={{ 
-                    "padding-left": '5px',
-                    "color": content.length > SEND_CONTENT_MAX_LENGTH ? 'red' : ''
-                    }}
-                >
-                    {content.length} / { SEND_CONTENT_MAX_LENGTH } 字符
-                </small></div>
-                <div style = { { "margin-top": '0.2em', "padding-left": '5px', }}>
+                <div>
+                    <small
+                        style={{
+                            'padding-left': '5px',
+                            color:
+                                content.length > SEND_CONTENT_MAX_LENGTH
+                                    ? 'red'
+                                    : '',
+                        }}
+                    >
+                        {content.length} / {SEND_CONTENT_MAX_LENGTH} 字符
+                    </small>
+                </div>
+                <div style={{ 'margin-top': '0.2em', 'padding-left': '5px' }}>
                     <small>
-                        { content.bytes } 字节 （某些渠道可能会对超过 {SEND_CONTENT_MAX_LENGTH * 1} 个字节的部分进行截断处理）
+                        {content.bytes} 字节 （某些渠道可能会对超过{' '}
+                        {SEND_CONTENT_MAX_LENGTH * 1} 个字节的部分进行截断处理）
                     </small>
                 </div>
 
