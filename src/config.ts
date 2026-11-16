@@ -26,7 +26,7 @@ const splitEnvArray = (s: string) =>
     s
         .replaceAll(',', '|')
         .split('|')
-        .map(String.prototype.trim)
+        .map((s) => s.trim())
         .filter(Boolean);
 
 type SmtpsConnection = {
