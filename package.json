@@ -12,7 +12,7 @@
     "prepare": "$npm_execpath cf-typegen",
     "build": "$npm_execpath run lint && vite build",
     "vite-preview": "$npm_execpath run build && vite preview",
-    "preview": "$npm_execpath run build && wrangler preview",
+    "preview": "$npm_execpath run build && $npm_execpath exec wrangler preview --secrets-file .dev.vars.preview",
     "deploy": "$npm_execpath run build && wrangler deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "cf-typegen:check": "wrangler types --env-interface CloudflareBindings --check",

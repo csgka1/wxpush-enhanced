@@ -242,7 +242,7 @@ Web 框架: Hono；
       ]
     }
   ```
-- 编译及预览：运行 `pnpm run preview` 能够通过 wrangler 将本地当前工作区代码编译并上传至 Cloudflare 预览分支。
+- 编译及预览：运行 `pnpm run preview` 能够通过 wrangler 将本地当前工作区代码编译并上传至 Cloudflare 预览分支。需要配置 `.dev.vars.preview`。
 
 - 该项目拥有代码格式和 lint 规范，并在编译时自动检查。运行 `pnpm run lint` 以进行格式检查。
 

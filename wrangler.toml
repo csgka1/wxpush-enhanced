@@ -17,6 +17,8 @@ invocation_logs = true
 
 
 # preview configs
+# [previews.vars] are all defined in `.dev.vars.preview`
+
 
 [previews.observability.traces]
 enabled = true
