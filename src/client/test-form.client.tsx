@@ -155,7 +155,7 @@ function TestForm({ token }: TestFormProps) {
                     {content.length} / { SEND_CONTENT_MAX_LENGTH } 字符
                 </small></div>
                 <div style = { { "margin-top": '0.2em', "padding-left": '5px', }}>
-                    <small style={{ }}>
+                    <small>
                         { content.bytes } 字节 （某些渠道可能会对超过 {SEND_CONTENT_MAX_LENGTH * 1} 个字节的部分进行截断处理）
                     </small>
                 </div>
