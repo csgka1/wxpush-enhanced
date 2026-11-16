@@ -252,6 +252,6 @@ Web 框架: Hono；
 本项目基于 [WXPush](https://github.com/frankiejun/wxpush) 进行二次开发。由于改动过大，故 Fork 为单独的版本。
 
 ## 📜 许可证
-本项目包含来自 [WXPush](https://github.com/frankiejun/wxpush)的代码，许可证文本位于 `/LICENSE-MIT` 中。
+本项目包含来自 [WXPush](https://github.com/frankiejun/wxpush)的代码，许可证文本位于 `/LICENSE-FROM-UPSTREAM` 中。
 
 本项目采用 [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt) 开源许可证。
