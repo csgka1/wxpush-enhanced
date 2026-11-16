@@ -54,7 +54,7 @@ export function validate<
         result,
         c,
     ) => {
-        if (result.success || c.var.globalConfig.DEBUG) {
+        if (result.success) {
             return;
         }
 
