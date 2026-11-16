@@ -63,6 +63,7 @@
         *   `SMTP_FROM`: 已获服务商授权的发件人地址。
         *   `SMTP_TO`: 固定收件人地址，多个收件人用 `|` 分隔，最多 50 个。
         *   `DEFAULT_CHANNEL`: 请求未传 `channel` 时采用的默认渠道，只能设置为 `wechat`、`wecom` 或 `smtp`。
+        *   `DEBUG`: 可选：调试模式开关，按需启用。传入格式为 `"0"|"1"`。
     *   **注意**：添加变量时，请确保勾选 **加密** 选项，以保护您的凭证安全。
 
 
@@ -243,9 +244,7 @@ Web 框架: Hono；
   ```
 - 编译及预览：运行 `pnpm run preview` 能够通过 wrangler 将本地当前工作区代码编译并上传至 Cloudflare 预览分支。
 
-- 该项目拥有代码格式和 lint 规范，并在编译时自动检查。运行 `pnpm run format` 和 `pnpm run lint` 以进行格式检查。
-
-
+- 该项目拥有代码格式和 lint 规范，并在编译时自动检查。运行 `pnpm run lint` 以进行格式检查。
 
 
 ## 二次开发说明

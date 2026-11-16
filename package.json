@@ -8,14 +8,18 @@
     "dev": "vite",
     "format": "$npm_execpath exec prettier --write ./src",
     "format:check": "$npm_execpath exec prettier --check ./src",
-    "lint": "$npm_execpath exec eslint .",
-    "prepare": "$npm_execpath exec wrangler types --env-interface CloudflareBindings",
-    "build": "$npm_execpath run format && $npm_execpath run lint && vite build",
+    "lint": "$npm_execpath format && $npm_execpath exec eslint .",
+    "prepare": "$npm_execpath cf-typegen",
+    "build": "$npm_execpath run lint && vite build",
     "vite-preview": "$npm_execpath run build && vite preview",
     "preview": "$npm_execpath run build && wrangler preview",
     "deploy": "$npm_execpath run build && wrangler deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "cf-typegen:check": "wrangler types --env-interface CloudflareBindings --check"
+    "cf-typegen:check": "wrangler types --env-interface CloudflareBindings --check",
+
+
+    "ci-lint": "$npm_execpath format:check && $npm_execpath exec eslint .",
+    "ci-build": "$npm_execpath run ci-lint && vite build"
   },
   "keywords": [],
   "author": "",
