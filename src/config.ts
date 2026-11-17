@@ -16,13 +16,18 @@ export function summarizeZodIssues(error: z.ZodError) {
 
 /**
  * 把 `|` 或 `,` 分隔的环境变量解析为去掉空项后的数组。
- * 
+ *
  * # Example
  * - `"a, b, c"` => `['a', 'b', 'c']`
- * 
+ *
  * - `"a | b | c"` => `['a', 'b', 'c']`
  */
-const splitEnvArray = (s: string) => s.replaceAll(",", "|").split("|").map(String.prototype.trim).filter(Boolean);
+const splitEnvArray = (s: string) =>
+    s
+        .replaceAll(',', '|')
+        .split('|')
+        .map((s) => s.trim())
+        .filter(Boolean);
 
 type SmtpsConnection = {
     hostname: string;
@@ -76,7 +81,9 @@ const channelSchemas = {
     [CHANNEL.wechat]: z.object({
         WX_APPID: z.string().min(1),
         WX_SECRET: z.string().min(1),
-        WX_USERID: z.string().transform(splitEnvArray)
+        WX_USERID: z
+            .string()
+            .transform(splitEnvArray)
             .pipe(z.array(z.string()).min(1)),
         WX_TEMPLATE_ID: z.string().min(1),
         WX_BASE_URL: z.url(),
@@ -101,7 +108,10 @@ const channelSchemas = {
             }
         }),
         SMTP_FROM: z.email(),
-        SMTP_TO: z.string().transform(splitEnvArray).pipe(z.array(z.string()).min(1).max(50)),
+        SMTP_TO: z
+            .string()
+            .transform(splitEnvArray)
+            .pipe(z.array(z.string()).min(1).max(50)),
     }),
 } satisfies Record<CHANNEL, z.ZodType>;
 
@@ -146,7 +156,11 @@ const globalEnvScheme = z
                 'ENABLED_CHANNELS must not contain duplicates.',
             ),
         DEBUG: z.string().transform(Number).transform(Boolean).default(false),
-        ALIVE_DAYS: z.string().transform(Number).optional().pipe(z.number().positive().min(1).max(3650).int()),
+        ALIVE_DAYS: z
+            .string()
+            .transform(Number)
+            .optional()
+            .pipe(z.number().positive().min(1).max(3650).int()),
     })
     .superRefine(({ DEFAULT_CHANNEL, ENABLED_CHANNELS }, ctx) => {
         if (DEFAULT_CHANNEL && !ENABLED_CHANNELS.includes(DEFAULT_CHANNEL)) {
@@ -165,7 +179,7 @@ const globalEnvScheme = z
  * @throws { z.ZodError }
  *
  */
-export function validateGlobalEnv(env: Env["Bindings"]) {
+export function validateGlobalEnv(env: Env['Bindings']) {
     return globalEnvScheme.parse(env);
 }
 

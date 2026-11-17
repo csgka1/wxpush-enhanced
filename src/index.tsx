@@ -14,7 +14,7 @@ app.use('/*', async (c, next) => {
     const requestId = crypto.randomUUID();
     c.set('requestId', requestId);
     await next();
-})
+});
 app.use('/*', bodyLimit({ maxSize: 8 * 1024 }));
 app.use('/*', installGlobalConfig);
 

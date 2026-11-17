@@ -4,11 +4,7 @@ import { ZodError } from 'zod';
 import { summarizeZodIssues, validateChannelEnv } from '../config';
 import { signSkinParam, SkinPageParam } from '../pages/skin';
 import { CHANNEL, type Env } from '../types';
-import {
-    b64Encode,
-    truncate_and_replace,
-    truncateUtf8,
-} from '../util';
+import { b64Encode, truncate_and_replace, truncateUtf8 } from '../util';
 
 type WeChatApiResponse = {
     errcode?: number;
@@ -76,7 +72,7 @@ async function sendWxMessage(
         timestamp: Date.now(),
         title: title,
         nonce: Math.floor(Math.random() * 0x7fffffff).toString(16),
-        truncatedCount: Math.abs(content.length - truncatedContent.length)
+        truncatedCount: Math.abs(content.length - truncatedContent.length),
     } satisfies Omit<SkinPageParam, typeof signKey>;
 
     const sign = signSkinParam(params, c);
@@ -101,8 +97,18 @@ async function sendWxMessage(
                 template_id: templateId,
                 url: messageUrl,
                 data: {
-                    thing01: { value: truncate_and_replace(title, WX_TEMPLATE_THING_LENGTH_LIMIT) },
-                    thing02: { value: truncate_and_replace(content, WX_TEMPLATE_THING_LENGTH_LIMIT) },
+                    thing01: {
+                        value: truncate_and_replace(
+                            title,
+                            WX_TEMPLATE_THING_LENGTH_LIMIT,
+                        ),
+                    },
+                    thing02: {
+                        value: truncate_and_replace(
+                            content,
+                            WX_TEMPLATE_THING_LENGTH_LIMIT,
+                        ),
+                    },
                 },
             }),
         },
@@ -176,7 +182,9 @@ export async function handleWxSend(
 
         const firstError = results[0];
         return c.json(
-            { msg: `Failed to send messages. First error: ${firstError.errmsg ?? 'Unknown Error'}, errcode=${firstError.errcode ?? '[unknown]'}` },
+            {
+                msg: `Failed to send messages. First error: ${firstError.errmsg ?? 'Unknown Error'}, errcode=${firstError.errcode ?? '[unknown]'}`,
+            },
             502,
         );
     } catch (error) {

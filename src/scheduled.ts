@@ -7,8 +7,8 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const ALIVE_TITLE = '保活测试';
 
-export const ALIVE_CONTENT = '这是一条由定时任务自动发送的保活消息，无需处理。\n收到它说明微信公众号测试号仍在正常接收消息。';
-
+export const ALIVE_CONTENT =
+    '这是一条由定时任务自动发送的保活消息，无需处理。\n收到它说明微信公众号测试号仍在正常接收消息。';
 
 /**
  * 判断本次触发是否到达保活间隔
@@ -47,7 +47,7 @@ export function createScheduledHandler(app: Hono<Env>) {
         }
 
         const days = config.ALIVE_DAYS;
-        
+
         if (days === undefined) {
             return;
         }

@@ -1,0 +1,78 @@
+# An automatic deployment process to Cloudflare Workers using Workflow in Github Action.
+#
+# Need CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID configured as secrets.
+#
+# Need CLOUDFLARE_WORKER_NAME configured in variables if you want to specify a different worker name from default name in `wrangler.toml`.
+#
+# Only enabled on tags, and deployment is gated on the CI workflow passing first.
+
+name: Deploy to Cloudflare Workers
+
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: CI
+    if: github.ref_type == 'tag'
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref_type == 'tag'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 12.8.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm exec ci-single-build  # require CI job passed
+
+      - name: Resolve Cloudflare credentials
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CF_API_TOKEN" ]; then
+            echo "[ERROR] Need Secret: CLOUDFLARE_API_TOKEN" >&2
+            exit 1
+          fi
+          echo "CLOUDFLARE_API_TOKEN=$CF_API_TOKEN" >> "$GITHUB_ENV"
+          if [ -n "$CF_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_ACCOUNT_ID=$CF_ACCOUNT_ID" >> "$GITHUB_ENV"
+          fi
+
+      - name: Deploy
+        env:
+          WORKER_NAME: ${{ vars.CLOUDFLARE_WORKER_NAME }}
+        run: |
+          if [ -n "$WORKER_NAME" ]; then
+            pnpm exec wrangler deploy --name "$WORKER_NAME"
+          else
+            pnpm exec wrangler deploy
+          fi

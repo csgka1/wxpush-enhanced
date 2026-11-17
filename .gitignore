@@ -20,6 +20,8 @@ node_modules/
 .env
 .env.production
 .dev.vars
+.dev.vars.*
+!.dev.vars.example
 
 # logs
 logs/
@@ -33,3 +35,5 @@ lerna-debug.log*
 # misc
 .DS_Store
 
+# Cloudflare Worker Typegen
+worker-configuration.d.ts

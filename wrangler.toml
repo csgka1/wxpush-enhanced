@@ -17,7 +17,9 @@ invocation_logs = true
 
 
 # preview configs
+# [previews.vars] are all defined in `.dev.vars.preview`
 
-[preview.observability.traces]
+
+[previews.observability.traces]
 enabled = true
 head_sampling_rate = 0.05
