@@ -2,6 +2,8 @@
 #
 # Need CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID configured as secrets.
 #
+# Need CLOUDFLARE_WORKER_NAME configured in variables if you want to specify a different worker name from default name in `wrangler.toml`.
+#
 # Only enabled on tags.
 
 name: Deploy to Cloudflare Workers
@@ -64,4 +66,11 @@ jobs:
           fi
 
       - name: Deploy
-        run: pnpm exec wrangler deploy
+        env:
+          WORKER_NAME: ${{ vars.CLOUDFLARE_WORKER_NAME }}
+        run: |
+          if [ -n "$WORKER_NAME" ]; then
+            pnpm exec wrangler deploy --name "$WORKER_NAME"
+          else
+            pnpm exec wrangler deploy
+          fi
