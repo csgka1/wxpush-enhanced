@@ -15,7 +15,7 @@ app.use('/*', async (c, next) => {
     c.set('requestId', requestId);
     await next();
 });
-app.use('/*', bodyLimit({ maxSize: 8 * 1024 }));
+app.use('/*', bodyLimit({ maxSize: 16 * 1024 }));
 app.use('/*', installGlobalConfig);
 
 RegisterApi(app);
