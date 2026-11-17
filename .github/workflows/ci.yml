@@ -5,9 +5,9 @@ on:
     branches:
       - main
       - dev
-      - ci_test
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   check:
-    name: Typecheck / Lint / Build
+    name: Typecheck / Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,11 +38,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Prettier check (non-blocking)
-        run: pnpm run format:check
+      - name: Format Check & Lint
+        run: pnpm run ci-single-lint
 
-      - name: Lint
-        run: pnpm run ci-lint
-
-      - name: Build
-        run: pnpm run ci-build

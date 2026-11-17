@@ -10,7 +10,7 @@
     "format:check": "$npm_execpath exec prettier --check ./src",
     "lint": "$npm_execpath format && $npm_execpath exec eslint .",
     "prepare": "$npm_execpath cf-typegen",
-    "build": "$npm_execpath run lint && vite build",
+    "build": "$npm_execpath run lint && $npm_execpath exec vite build",
     "vite-preview": "$npm_execpath run build && vite preview",
     "preview": "$npm_execpath run build && $npm_execpath exec wrangler preview --secrets-file .dev.vars.preview",
     "deploy": "$npm_execpath run build && wrangler deploy",
@@ -18,8 +18,8 @@
     "cf-typegen:check": "wrangler types --env-interface CloudflareBindings --check",
 
 
-    "ci-lint": "$npm_execpath format:check && $npm_execpath exec eslint .",
-    "ci-build": "$npm_execpath run ci-lint && vite build"
+    "ci-single-lint": "$npm_execpath format:check && $npm_execpath exec eslint .",
+    "ci-single-build": "$npm_execpath exec vite build"
   },
   "keywords": [],
   "author": "",
