@@ -1,0 +1,65 @@
+# An automatic deployment process to Cloudflare Workers using Workflow in Github Action.
+#
+# Need CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID configured as secrets.
+#
+# Only enabled on tags.
+
+name: Deploy to Cloudflare Workers
+
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 12.8.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 构建产物会带上 .dev.vars，CI 里不创建该文件：
+      # 线上变量由 Cloudflare 控制台的 Variables 提供，不能被本地占位值覆盖。
+      - name: Build
+        run: pnpm run ci-build
+
+      - name: Resolve Cloudflare credentials
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CF_API_TOKEN" ]; then
+            echo "缺少仓库 Secret: CLOUDFLARE_API_TOKEN" >&2
+            exit 1
+          fi
+          echo "CLOUDFLARE_API_TOKEN=$CF_API_TOKEN" >> "$GITHUB_ENV"
+          if [ -n "$CF_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_ACCOUNT_ID=$CF_ACCOUNT_ID" >> "$GITHUB_ENV"
+          fi
+
+      - name: Deploy
+        run: pnpm exec wrangler deploy
