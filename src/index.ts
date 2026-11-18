@@ -19,6 +19,10 @@ app.use('/*', async (c, next) => {
 app.use('/*', bodyLimit({ maxSize: 16 * 1024 }));
 app.use('/*', installConfig);
 
+app.get('/', (c) => {
+    return c.text('WxPush-Enhanced Service');
+});
+
 RegisterApi(app);
 
 RegisterSkinPage(app);
