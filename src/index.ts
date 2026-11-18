@@ -9,6 +9,7 @@ import RegisterTestPage from './pages/test';
 import { createScheduledHandler } from './scheduled';
 
 const app = new Hono<Env>();
+export { app }; // export for test code
 
 app.use('/*', async (c, next) => {
     const requestId = crypto.randomUUID();
