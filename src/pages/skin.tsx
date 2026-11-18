@@ -44,7 +44,12 @@ const SkinSchema = z.object({
         .transform(Number)
         .refine((n) => n >= 0 && Number.isInteger(n)),
     nonce: z.string().regex(/^[0-9a-fA-F]{1,64}$/),
-    truncatedCount: z.string().transform(Number).default(0),
+    truncatedCount: z
+        .string()
+        .max(8)
+        .regex(/^[0-9]*$/)
+        .transform(Number)
+        .default(0),
     sign: z.base64url(),
 });
 
