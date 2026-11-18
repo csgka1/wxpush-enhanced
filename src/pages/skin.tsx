@@ -2,7 +2,7 @@ import { marked } from 'marked';
 import { Script } from 'vite-ssr-components/hono';
 import { b64Decode, b64Encode, getBeijingTime, hmac } from '../util';
 import { z } from 'zod';
-import { Context, type Hono } from 'hono';
+import { type Hono } from 'hono';
 import { renderer } from './renderer';
 import { Env } from '../types';
 import { checkSign, validate } from '../middlewares';
@@ -67,7 +67,7 @@ type SignKey = [SignKeyRaw] extends [never]
 // 在日后对其他接口进行鉴权时，再考虑封装问题。
 export function signSkinParam(
     { title, message, timestamp, nonce }: Omit<SkinPageParam, SignKey>,
-    c: Context<Env>,
+    secret: string,
 ): string {
     const payload = [
         `message=${message}`,
@@ -75,7 +75,7 @@ export function signSkinParam(
         `timestamp=${timestamp}`,
         `title=${title}`,
     ].join('&');
-    return hmac(payload, c.var.globalConfig.SIGN_SECRET);
+    return hmac(payload, secret);
 }
 
 export default function RegisterSkinPage(app: Hono<Env>) {
@@ -93,7 +93,11 @@ export default function RegisterSkinPage(app: Hono<Env>) {
         validate('query', SkinSchema),
         checkSign<SkinPageParam>(
             (c) => c.req.valid('query').sign,
-            (c) => signSkinParam(c.req.valid('query'), c),
+            (c) =>
+                signSkinParam(
+                    c.req.valid('query'),
+                    c.var.globalConfig.SIGN_SECRET,
+                ),
         ),
         async (c) => {
             c.set('pageTitle', '消息推送');

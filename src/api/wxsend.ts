@@ -75,7 +75,7 @@ async function sendWxMessage(
         truncatedCount: Math.abs(content.length - truncatedContent.length),
     } satisfies Omit<SkinPageParam, typeof signKey>;
 
-    const sign = signSkinParam(params, c);
+    const sign = signSkinParam(params, c.var.globalConfig.SIGN_SECRET);
 
     for (const [key, value] of Object.entries(params)) {
         const encodedValue =
