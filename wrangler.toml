@@ -1,5 +1,5 @@
 name = "wxpush"
-main = "./src/index.tsx"
+main = "./src/index.ts"
 compatibility_date = "2026-10-01"
 compatibility_flags = [
     "remove_nodejs_compat_eol_v24"  # remove after 2028-04-30

@@ -14,7 +14,7 @@ export const renderer = jsxRenderer<Env>(({ children }, c: Context<Env>) => {
             <head>
                 <title>{`${titlePrefix}${pageTitle}`}</title>
                 <ViteClient />
-                <Link href="/src/style.css" rel="stylesheet" />
+                <Link href="/src/pages/style.css" rel="stylesheet" />
             </head>
             <body>{children}</body>
         </html>
