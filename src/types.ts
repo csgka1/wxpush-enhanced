@@ -1,5 +1,5 @@
 import type { Env as LibEnv } from 'hono';
-import { GlobalEnv } from './config';
+import type { AppConfig } from './config';
 
 export type EnvVar = {
     API_TOKEN: string;
@@ -21,7 +21,7 @@ export type EnvVar = {
 
 export type MetaData = {
     pageTitle?: string;
-    globalConfig: GlobalEnv;
+    config: AppConfig;
     requestId: string;
 };
 

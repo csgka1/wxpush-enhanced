@@ -1,7 +1,6 @@
 import type { Context } from 'hono';
-import { ZodError } from 'zod';
 
-import { summarizeZodIssues, validateChannelEnv } from '../config';
+import { getChannelConfig } from '../config';
 import { signSkinParam, SkinPageParam } from '../pages/skin';
 import { CHANNEL, type Env } from '../types';
 import { b64Encode, truncate_and_replace, truncateUtf8 } from '../util';
@@ -75,7 +74,7 @@ async function sendWxMessage(
         truncatedCount: Math.abs(content.length - truncatedContent.length),
     } satisfies Omit<SkinPageParam, typeof signKey>;
 
-    const sign = signSkinParam(params, c.var.globalConfig.SIGN_SECRET);
+    const sign = signSkinParam(params, c.var.config.global.SIGN_SECRET);
 
     for (const [key, value] of Object.entries(params)) {
         const encodedValue =
@@ -114,7 +113,7 @@ async function sendWxMessage(
         },
     );
 
-    if (c.var.globalConfig.DEBUG) {
+    if (c.var.config.global.DEBUG) {
         console.log(`${messageUrl.href}`);
     }
 
@@ -132,28 +131,13 @@ export async function handleWxSend(
     title: string,
     content: string,
 ) {
-    let config;
-    try {
-        config = validateChannelEnv(CHANNEL.wechat, c).config;
-    } catch (error) {
-        if (!(error instanceof ZodError)) {
-            throw error;
-        }
-
-        console.error({
-            event: 'wechat_configuration_error',
-            issues: summarizeZodIssues(error),
-        });
-        return c.json({ msg: 'Invalid WeChat configuration.' }, 500);
-    }
-
     const {
         WX_APPID: appid,
         WX_SECRET: secret,
         WX_USERID: userIds,
         WX_TEMPLATE_ID: templateId,
         WX_BASE_URL: baseUrl,
-    } = config;
+    } = getChannelConfig(c, CHANNEL.wechat);
 
     try {
         const accessToken = await getStableToken(appid, secret);

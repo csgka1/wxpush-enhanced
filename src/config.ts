@@ -1,12 +1,13 @@
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 
 import { CHANNEL, Env } from './types';
 import { Context } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 
 /**
  * 汇总 ZodError 中的 issues，避免日志里输出整段 schema 信息。
  */
-export function summarizeZodIssues(error: z.ZodError) {
+function summarizeZodIssues(error: z.ZodError) {
     return error.issues.map(({ code, path, message }) => ({
         code,
         path,
@@ -127,17 +128,38 @@ export type ValidatedChannelEnv<C extends CHANNEL = CHANNEL> = {
 }[C];
 
 /**
- * 验证指定推送渠道的环境变量配置，并返回经过类型转换后的配置
- * @throws { z.ZodError }
+ * 已注入的渠道配置，未启用的渠道不存在对应条目。
  */
-export function validateChannelEnv<C extends CHANNEL>(
+export type ChannelConfigs = {
+    [C in CHANNEL]?: ValidatedChannelEnv<C>;
+};
+
+function parseChannelConfig<C extends CHANNEL>(
     channel: C,
-    c: Context<Env>,
+    env: Env['Bindings'],
 ): ValidatedChannelEnv<C> {
     return {
         channel,
-        config: channelSchemas[channel].parse(c.env),
+        config: channelSchemas[channel].parse(env),
     } as ValidatedChannelEnv<C>;
+}
+
+/**
+ * 读取已注入的渠道配置。
+ *
+ * @throws { HTTPException } 渠道未启用，或对应配置未注入
+ */
+export function getChannelConfig<C extends CHANNEL>(
+    c: Context<Env>,
+    channel: C,
+): ChannelConfigMap[C] {
+    const entry = c.var.config.channels[channel];
+    if (!entry) {
+        console.error({ event: 'channel_config_missing', channel });
+        throw new HTTPException(500, { message: 'Internal Server Error' });
+    }
+
+    return entry.config;
 }
 
 const globalEnvScheme = z
@@ -184,3 +206,43 @@ export function validateGlobalEnv(env: Env['Bindings']) {
 }
 
 export type GlobalEnv = z.infer<typeof globalEnvScheme>;
+
+export type AppConfig = {
+    global: GlobalEnv;
+    channels: ChannelConfigs;
+};
+
+/**
+ * 解析全局配置与所有已启用渠道的配置。
+ *
+ * @throws { z.ZodError } 全局配置或任一已启用渠道的配置不合法
+ */
+export function resolveConfig(env: Env['Bindings']): AppConfig {
+    const global = validateGlobalEnv(env);
+
+    const channels = Object.fromEntries(
+        global.ENABLED_CHANNELS.map(
+            (channel) => [channel, parseChannelConfig(channel, env)] as const,
+        ),
+    ) as ChannelConfigs;
+
+    return { global, channels };
+}
+
+/**
+ * 解析配置，失败时记录日志并返回 undefined。
+ */
+export function tryResolveConfig(env: Env['Bindings']): AppConfig | undefined {
+    try {
+        return resolveConfig(env);
+    } catch (error) {
+        if (error instanceof ZodError) {
+            console.error({
+                event: 'config_validation_error',
+                issues: summarizeZodIssues(error),
+            });
+        } else {
+            console.error(error);
+        }
+    }
+}

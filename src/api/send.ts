@@ -35,18 +35,17 @@ export const send = new Hono<Env>().post(
             channel: requestedChannel,
             acceptChannelFallback,
         } = c.req.valid('json');
-        const globalConfig = c.var.globalConfig;
+        const { global, channels } = c.var.config;
 
+        const fallback = acceptChannelFallback
+            ? global.DEFAULT_CHANNEL
+            : undefined;
         const channel =
-            requestedChannel === undefined
-                ? globalConfig.DEFAULT_CHANNEL
-                : globalConfig.ENABLED_CHANNELS.includes(requestedChannel)
-                  ? requestedChannel
-                  : acceptChannelFallback
-                    ? globalConfig.DEFAULT_CHANNEL
-                    : undefined;
+            requestedChannel && channels[requestedChannel]
+                ? requestedChannel
+                : fallback;
 
-        if (!channel || !globalConfig.ENABLED_CHANNELS.includes(channel)) {
+        if (!channel) {
             return c.json({ msg: 'No available channel.' }, 400);
         }
 

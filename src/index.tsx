@@ -1,7 +1,7 @@
 import { Env } from './types';
 
 import { Hono } from 'hono';
-import { installGlobalConfig } from './middlewares';
+import { installConfig } from './middlewares';
 import { RegisterApi } from './api';
 import { bodyLimit } from 'hono/body-limit';
 import RegisterSkinPage from './pages/skin';
@@ -16,7 +16,7 @@ app.use('/*', async (c, next) => {
     await next();
 });
 app.use('/*', bodyLimit({ maxSize: 16 * 1024 }));
-app.use('/*', installGlobalConfig);
+app.use('/*', installConfig);
 
 RegisterApi(app);
 

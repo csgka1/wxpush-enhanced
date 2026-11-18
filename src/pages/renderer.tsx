@@ -5,7 +5,7 @@ import { Context } from 'hono';
 
 export const renderer = jsxRenderer<Env>(({ children }, c: Context<Env>) => {
     let titlePrefix = '';
-    if (c.var.globalConfig?.DEBUG) {
+    if (c.var.config.global.DEBUG) {
         titlePrefix = '[DEBUG] ';
     }
     const pageTitle = c.var.pageTitle || 'Default Title';

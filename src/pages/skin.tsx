@@ -96,7 +96,7 @@ export default function RegisterSkinPage(app: Hono<Env>) {
             (c) =>
                 signSkinParam(
                     c.req.valid('query'),
-                    c.var.globalConfig.SIGN_SECRET,
+                    c.var.config.global.SIGN_SECRET,
                 ),
         ),
         async (c) => {
