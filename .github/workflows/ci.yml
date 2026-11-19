@@ -41,3 +41,6 @@ jobs:
       - name: Format Check & Lint
         run: pnpm run ci-single-lint
 
+      - name: Unit Test
+        run: pnpm run ci-single-test
+

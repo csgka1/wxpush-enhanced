@@ -1,5 +1,4 @@
 import type { Hono } from 'hono';
-import { ZodError } from 'zod';
 import * as Config from './config';
 import { CHANNEL, type Env, type EnvVar } from './types';
 
@@ -30,28 +29,12 @@ export function createScheduledHandler(app: Hono<Env>) {
         env: EnvVar,
         ctx: ExecutionContext,
     ): Promise<void> => {
-        const config = (() => {
-            try {
-                const config = Config.validateGlobalEnv(env);
-                return config;
-            } catch (err) {
-                if (err instanceof ZodError) {
-                    console.error(`[ERROR] [Global Config] ${err.message}`);
-                } else {
-                    console.error(err);
-                }
-            }
-        })();
+        const config = Config.tryResolveConfig(env);
         if (!config) {
             return;
         }
 
-        const days = config.ALIVE_DAYS;
-
-        if (days === undefined) {
-            return;
-        }
-
+        const days = config.global.ALIVE_DAYS;
         if (days === undefined || !isAliveDay(controller.scheduledTime, days)) {
             return;
         }

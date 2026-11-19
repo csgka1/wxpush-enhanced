@@ -1,7 +1,7 @@
 import { Env } from './types';
 
 import { Hono } from 'hono';
-import { installGlobalConfig } from './middlewares';
+import { installConfig } from './middlewares';
 import { RegisterApi } from './api';
 import { bodyLimit } from 'hono/body-limit';
 import RegisterSkinPage from './pages/skin';
@@ -9,14 +9,19 @@ import RegisterTestPage from './pages/test';
 import { createScheduledHandler } from './scheduled';
 
 const app = new Hono<Env>();
+export { app }; // export for test code
 
 app.use('/*', async (c, next) => {
     const requestId = crypto.randomUUID();
     c.set('requestId', requestId);
     await next();
 });
-app.use('/*', bodyLimit({ maxSize: 8 * 1024 }));
-app.use('/*', installGlobalConfig);
+app.use('/*', bodyLimit({ maxSize: 16 * 1024 }));
+app.use('/*', installConfig);
+
+app.get('/', (c) => {
+    return c.text('WxPush-Enhanced Service');
+});
 
 RegisterApi(app);
 

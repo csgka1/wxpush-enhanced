@@ -2,7 +2,7 @@ import type { Context } from 'hono';
 
 import { CHANNEL, type Env } from '../types';
 import { truncateUtf8 } from '../util';
-import { validateChannelEnv } from '../config';
+import { getChannelConfig } from '../config';
 
 export function formatWecomMarkdown(title: string, content: string): string {
     return `# ${title}\n\n${content}`;
@@ -18,7 +18,7 @@ export async function handleWecomSend(
     title: string,
     content: string,
 ) {
-    const conf = validateChannelEnv(CHANNEL.wecom, c).config;
+    const { WECOM_WEBHOOK_URL } = getChannelConfig(c, CHANNEL.wecom);
 
     const WECOM_BYTES_LIMIT = 4096;
     const md = formatWecomMarkdown(title, content);
@@ -32,7 +32,7 @@ export async function handleWecomSend(
     }
 
     try {
-        const response = await fetch(conf.WECOM_WEBHOOK_URL, {
+        const response = await fetch(WECOM_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json;charset=utf-8' },
             body: JSON.stringify({

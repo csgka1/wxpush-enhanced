@@ -11,7 +11,7 @@ import type { Env } from './types';
 import { HTTPException } from 'hono/http-exception';
 import { bearerAuth } from 'hono/bearer-auth';
 import * as Config from './config';
-import { z, ZodError, type ZodType } from 'zod';
+import { z, type ZodType } from 'zod';
 
 export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
     const authQuery = c.req.query('token');
@@ -29,20 +29,13 @@ export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
     await next();
 };
 
-export const installGlobalConfig: MiddlewareHandler<Env> = async (c, next) => {
-    try {
-        const config = Config.validateGlobalEnv(c.env);
-        c.set('globalConfig', config);
-    } catch (err) {
-        if (err instanceof ZodError) {
-            console.log(`[ERROR] [Global Config] ${err.message}`);
-        } else {
-            console.log(err);
-        }
-        throw new HTTPException(500, {
-            message: 'Internal Server Error',
-        });
+export const installConfig: MiddlewareHandler<Env> = async (c, next) => {
+    const config = Config.tryResolveConfig(c.env);
+    if (!config) {
+        throw new HTTPException(500, { message: 'Internal Server Error' });
     }
+
+    c.set('config', config);
     await next();
 };
 
