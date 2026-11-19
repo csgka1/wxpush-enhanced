@@ -70,6 +70,8 @@ jobs:
       - name: Deploy
         env:
           WORKER_NAME: ${{ vars.CLOUDFLARE_WORKER_NAME }}
+          # 隐藏 URL
+          WRANGLER_LOG: info
         run: |
           if [ -n "$WORKER_NAME" ]; then
             pnpm exec wrangler deploy --name "$WORKER_NAME"
