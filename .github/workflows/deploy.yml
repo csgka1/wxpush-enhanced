@@ -51,7 +51,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm exec ci-single-build  # require CI job passed
+        run: pnpm run ci-single-build  # require CI job passed
 
       - name: Resolve Cloudflare credentials
         env:
