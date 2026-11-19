@@ -1,13 +1,13 @@
 import { cloudflareTest } from '@cloudflare/vitest-plugin';
 import { defineConfig } from 'vitest/config';
 
-import { validEnv } from './tests/support/env';
+import { validAppConfig } from './tests/support/env';
 
 export default defineConfig({
     plugins: [
         cloudflareTest({
             wrangler: { configPath: './wrangler.toml' },
-            miniflare: { bindings: { ...validEnv } },
+            miniflare: { bindings: validAppConfig },
         }),
     ],
     test: {

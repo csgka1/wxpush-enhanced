@@ -1,9 +1,9 @@
-import type { EnvVar } from '../../src/types';
+import type { AppConfigEnvVar } from '../../src/types';
 
 /**
  * 虚拟的 app config
  */
-export const validEnv: Required<EnvVar> = {
+export const validAppConfig: Required<AppConfigEnvVar> = {
     API_TOKEN: 'test_token',
     SIGN_SECRET: 'testsignsecret1234',
     ENABLED_CHANNELS: 'wechat,wecom,smtp',
@@ -25,6 +25,8 @@ export const validEnv: Required<EnvVar> = {
 /**
  * 在完整配置的基础上覆盖指定字段。
  */
-export function makeEnv(overrides: Partial<EnvVar> = {}): EnvVar {
-    return { ...validEnv, ...overrides };
+export function makeEnv(
+    overrides: Partial<AppConfigEnvVar> = {},
+): AppConfigEnvVar {
+    return { ...validAppConfig, ...overrides };
 }

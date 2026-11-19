@@ -1,7 +1,7 @@
 import type { Env as LibEnv } from 'hono';
 import type { AppConfig } from './config';
 
-export type EnvVar = {
+export type AppConfigEnvVar = {
     API_TOKEN: string;
     WX_APPID?: string;
     WX_SECRET?: string;
@@ -26,7 +26,7 @@ export type MetaData = {
 };
 
 export interface Env extends LibEnv {
-    Bindings: EnvVar;
+    Bindings: AppConfigEnvVar;
     Variables: MetaData;
 }
 

@@ -1,5 +1,5 @@
 import { app } from '../../src/index';
-import type { EnvVar } from '../../src/types';
+import type { Env } from '../../src/types';
 import { makeEnv } from './env';
 
 export { app };
@@ -7,7 +7,7 @@ export { app };
 /**
  * 携带正确 Bearer token 调用 /api/send。
  */
-export function sendRequest(body: unknown, env: EnvVar = makeEnv()) {
+export function sendRequest(body: unknown, env: Env['Bindings'] = makeEnv()) {
     return app.request(
         '/api/send',
         {

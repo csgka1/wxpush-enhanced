@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createScheduledHandler } from '../../src/scheduled';
-import type { EnvVar } from '../../src/types';
+import type { Env } from '../../src/types';
 import { app } from '../support/app';
 import { makeEnv } from '../support/env';
 import { stubUpstream } from '../support/upstream';
@@ -12,7 +12,7 @@ const atDay = (offset: number) => ANCHOR + offset * MS_PER_DAY;
 
 const handler = createScheduledHandler(app);
 
-function runCron(env: EnvVar, scheduledTime: number) {
+function runCron(env: Env['Bindings'], scheduledTime: number) {
     const controller = {
         cron: '0 2 * * *',
         scheduledTime,

@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest';
 
 import { getChannelConfig } from '../../src/config';
 import { installConfig } from '../../src/middlewares';
-import { CHANNEL, type Env, type EnvVar } from '../../src/types';
+import { CHANNEL, type AppConfigEnvVar, type Env } from '../../src/types';
 import { makeEnv } from '../support/env';
 
 /**
  * 用探针路由把配置中间件注入的推送渠道配置暴露出来，便于在 HTTP 层观察读取行为。
  */
-function probeWechatConfig(env: EnvVar) {
+function probeWechatConfig(env: AppConfigEnvVar) {
     const app = new Hono<Env>();
     app.use(installConfig);
     app.get('/probe/wechat', (c) =>
