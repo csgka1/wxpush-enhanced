@@ -164,8 +164,8 @@ export function getChannelConfig<C extends CHANNEL>(
 
 const globalEnvScheme = z
     .object({
-        API_TOKEN: z.string().regex(/^[a-zA-Z0-9_\-=]+$/),
-        SIGN_SECRET: z.string().regex(/^[a-zA-Z0-9]{10,32}$/),
+        API_TOKEN: z.string().regex(/^[a-zA-Z0-9_\-=]{16,64}$/), // use base64url alphabet
+        SIGN_SECRET: z.string().regex(/^[a-zA-Z0-9]{16,64}$/),
         DEFAULT_CHANNEL: z.enum(CHANNEL).optional(),
         ENABLED_CHANNELS: z
             .string()

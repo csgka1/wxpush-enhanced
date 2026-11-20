@@ -10,10 +10,6 @@ type EditableValue = {
 
 type Channel = 'wechat' | 'wecom' | 'smtp';
 
-type TestFormProps = {
-    token: string;
-};
-
 function createEditableValue(value: string): EditableValue {
     return {
         value,
@@ -22,7 +18,8 @@ function createEditableValue(value: string): EditableValue {
     };
 }
 
-function TestForm({ token }: TestFormProps) {
+function TestForm() {
+    const [token, setToken] = useState('');
     const [title, setTitle] = useState(() => createEditableValue('测试标题'));
     const [content, setContent] = useState(() =>
         createEditableValue('这是测试内容'),
@@ -55,6 +52,13 @@ function TestForm({ token }: TestFormProps) {
         }
     };
 
+    const updateToken = (event: Event) => {
+        const field = event.currentTarget;
+        if (field instanceof HTMLInputElement) {
+            setToken(field.value);
+        }
+    };
+
     const clearForm = () => {
         setTitle(createEditableValue(''));
         setContent(createEditableValue(''));
@@ -77,11 +81,12 @@ function TestForm({ token }: TestFormProps) {
                 channel,
             }).filter(([, value]) => value.length > 0),
         );
+        const bearerToken = token.trim();
         const headers = new Headers({
             'Content-Type': 'application/json',
         });
-        if (token) {
-            headers.set('Authorization', `Bearer ${token}`);
+        if (bearerToken) {
+            headers.set('Authorization', `Bearer ${bearerToken}`);
         }
 
         try {
@@ -110,6 +115,16 @@ function TestForm({ token }: TestFormProps) {
                 style:action="/api/send"
                 onSubmit={handleSubmit}
             >
+                <label for="token">API Token</label>
+                <input
+                    id="token"
+                    name="token"
+                    type="text"
+                    autocomplete="off"
+                    value={token}
+                    onChange={updateToken}
+                />
+
                 <label for="channel">发送渠道 (channel)</label>
                 <select
                     id="channel"
@@ -130,6 +145,7 @@ function TestForm({ token }: TestFormProps) {
                     value={title.value}
                     onChange={updateEditableField(setTitle)}
                 />
+
                 <div>
                     <small
                         style={{
@@ -197,4 +213,4 @@ if (!(root instanceof HTMLElement)) {
     throw new Error('Test form root element was not found');
 }
 
-render(<TestForm token={root.dataset.token ?? ''} />, root);
+render(<TestForm />, root);

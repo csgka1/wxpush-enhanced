@@ -13,7 +13,11 @@ import { bearerAuth } from 'hono/bearer-auth';
 import * as Config from './config';
 import { z, type ZodType } from 'zod';
 
-export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
+/**
+ * token 校验中间件
+ * @deprecated 已禁止通过 query 验证 token
+ */
+export const auth_token_old: MiddlewareHandler<Env> = async (c, next) => {
     const authQuery = c.req.query('token');
     // Validate query if query is sent, otherwise validate Header instead
     if (!authQuery) {
@@ -32,8 +36,15 @@ export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
 };
 
 /**
+ * token 校验中间件
+ */
+export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
+    return bearerAuth<Env>({ token: c.var.config.global.API_TOKEN })(c, next);
+};
+
+/**
  * 向 Context 中注入应用配置({@link Config.AppConfig })
- * 
+ *
  */
 export const installAppConfig: MiddlewareHandler<Env> = async (c, next) => {
     const config = Config.tryResolveAppConfig(c.env);

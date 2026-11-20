@@ -28,5 +28,8 @@ export const validAppConfig: Required<AppConfigEnvVar> = {
 export function makeEnv(
     overrides: Partial<AppConfigEnvVar> = {},
 ): AppConfigEnvVar {
-    return { ...validAppConfig, ...overrides };
+    return {
+        ...validAppConfig,
+        ...overrides,
+    };
 }
