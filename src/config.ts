@@ -217,7 +217,7 @@ export type AppConfig = {
  *
  * @throws { z.ZodError } 全局配置或任一已启用渠道的配置不合法
  */
-export function resolveConfig(env: Env['Bindings']): AppConfig {
+export function resolveAppConfig(env: Env['Bindings']): AppConfig {
     const global = validateGlobalEnv(env);
 
     const channels = Object.fromEntries(
@@ -232,9 +232,11 @@ export function resolveConfig(env: Env['Bindings']): AppConfig {
 /**
  * 解析配置，失败时记录日志并返回 undefined。
  */
-export function tryResolveConfig(env: Env['Bindings']): AppConfig | undefined {
+export function tryResolveAppConfig(
+    env: Env['Bindings'],
+): AppConfig | undefined {
     try {
-        return resolveConfig(env);
+        return resolveAppConfig(env);
     } catch (error) {
         if (error instanceof ZodError) {
             console.error({

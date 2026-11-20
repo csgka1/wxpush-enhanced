@@ -1,6 +1,6 @@
 import type { Hono } from 'hono';
 import * as Config from './config';
-import { CHANNEL, type Env, type EnvVar } from './types';
+import { CHANNEL, type Env } from './types';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -26,10 +26,10 @@ export function isAliveDay(scheduledTime: number, days: number): boolean {
 export function createScheduledHandler(app: Hono<Env>) {
     return async (
         controller: ScheduledController,
-        env: EnvVar,
+        env: Env['Bindings'],
         ctx: ExecutionContext,
     ): Promise<void> => {
-        const config = Config.tryResolveConfig(env);
+        const config = Config.tryResolveAppConfig(env);
         if (!config) {
             return;
         }

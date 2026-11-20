@@ -19,18 +19,24 @@ export const auth_token: MiddlewareHandler<Env> = async (c, next) => {
     if (!authQuery) {
         return bearerAuth<Env>({
             verifyToken: async (token, c) =>
-                timingSafeEqual(token, c.env.API_TOKEN),
+                timingSafeEqual(token, c.var.config.global.API_TOKEN),
         })(c, next);
     } else {
-        if (!(await timingSafeEqual(authQuery, c.env.API_TOKEN))) {
+        if (
+            !(await timingSafeEqual(authQuery, c.var.config.global.API_TOKEN))
+        ) {
             throw new HTTPException(403);
         }
     }
     await next();
 };
 
-export const installConfig: MiddlewareHandler<Env> = async (c, next) => {
-    const config = Config.tryResolveConfig(c.env);
+/**
+ * 向 Context 中注入应用配置({@link Config.AppConfig })
+ * 
+ */
+export const installAppConfig: MiddlewareHandler<Env> = async (c, next) => {
+    const config = Config.tryResolveAppConfig(c.env);
     if (!config) {
         throw new HTTPException(500, { message: 'Internal Server Error' });
     }

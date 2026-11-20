@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { describe, expect, it } from 'vitest';
 
 import { getChannelConfig } from '../../src/config';
-import { installConfig } from '../../src/middlewares';
+import { installAppConfig } from '../../src/middlewares';
 import { CHANNEL, type AppConfigEnvVar, type Env } from '../../src/types';
 import { makeEnv } from '../support/env';
 
@@ -11,7 +11,7 @@ import { makeEnv } from '../support/env';
  */
 function probeWechatConfig(env: AppConfigEnvVar) {
     const app = new Hono<Env>();
-    app.use(installConfig);
+    app.use(installAppConfig);
     app.get('/probe/wechat', (c) =>
         c.json(getChannelConfig(c, CHANNEL.wechat)),
     );

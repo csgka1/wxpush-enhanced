@@ -1,7 +1,7 @@
 import { Env } from './types';
 
 import { Hono } from 'hono';
-import { installConfig } from './middlewares';
+import { installAppConfig } from './middlewares';
 import { RegisterApi } from './api';
 import { bodyLimit } from 'hono/body-limit';
 import RegisterSkinPage from './pages/skin';
@@ -17,7 +17,7 @@ app.use('/*', async (c, next) => {
     await next();
 });
 app.use('/*', bodyLimit({ maxSize: 16 * 1024 }));
-app.use('/*', installConfig);
+app.use('/*', installAppConfig);
 
 app.get('/', (c) => {
     return c.text('WxPush-Enhanced Service');
