@@ -23,6 +23,16 @@ describe('GET /', () => {
         expect(response.status).toBe(500);
     });
 
+    it('API_TOKEN 长度不足时返回 500', async () => {
+        const response = await app.request(
+            '/',
+            {},
+            makeEnv({ API_TOKEN: 'short_token' }),
+        );
+
+        expect(response.status).toBe(500);
+    });
+
     it('已启用渠道缺少配置时返回 500', async () => {
         const response = await app.request(
             '/',

@@ -96,21 +96,57 @@ describe('validateGlobalEnv', () => {
         ).toThrow();
     });
 
-    it('拒绝不符合字符集的 API_TOKEN', () => {
-        expect(() =>
-            validateGlobalEnv(makeEnv({ API_TOKEN: 'bad token' })),
-        ).toThrow();
+    it('接受长度为 16 到 64 的全局凭据', () => {
+        for (const length of [16, 64]) {
+            const value = 'a'.repeat(length);
+            const config = validateGlobalEnv(
+                makeEnv({ API_TOKEN: value, SIGN_SECRET: value }),
+            );
+
+            expect(config.API_TOKEN).toBe(value);
+            expect(config.SIGN_SECRET).toBe(value);
+        }
     });
 
-    it('拒绝长度不在 10 到 32 之间的 SIGN_SECRET', () => {
+    it('拒绝长度不在 16 到 64 之间的 API_TOKEN', () => {
+        for (const token of ['a'.repeat(15), 'a'.repeat(65)]) {
+            expect(() =>
+                validateGlobalEnv(makeEnv({ API_TOKEN: token })),
+            ).toThrow();
+        }
+    });
+
+    it('拒绝长度不在 16 到 64 之间的 SIGN_SECRET', () => {
+        for (const secret of ['a'.repeat(15), 'a'.repeat(65)]) {
+            expect(() =>
+                validateGlobalEnv(makeEnv({ SIGN_SECRET: secret })),
+            ).toThrow();
+        }
+    });
+
+    it('拒绝不符合 base64url 字符集的 API_TOKEN', () => {
+        for (const token of [
+            'bad token 1234567890',
+            `${'a'.repeat(15)}+`,
+            `${'a'.repeat(15)}/`,
+        ]) {
+            expect(() =>
+                validateGlobalEnv(makeEnv({ API_TOKEN: token })),
+            ).toThrow();
+        }
+    });
+
+    it('允许 API_TOKEN 使用 -、_ 与 = 填充', () => {
+        const token = `ab-_${'a'.repeat(12)}=`;
+
+        expect(validateGlobalEnv(makeEnv({ API_TOKEN: token })).API_TOKEN).toBe(
+            token,
+        );
+    });
+
+    it('拒绝不符合字符集的 SIGN_SECRET', () => {
         expect(() =>
-            validateGlobalEnv(makeEnv({ SIGN_SECRET: '123456789' })),
-        ).toThrow();
-        expect(() =>
-            validateGlobalEnv(makeEnv({ SIGN_SECRET: 'a'.repeat(33) })),
-        ).toThrow();
-        expect(() =>
-            validateGlobalEnv(makeEnv({ SIGN_SECRET: 'has-dash-1234' })),
+            validateGlobalEnv(makeEnv({ SIGN_SECRET: 'has-dash-1234567890' })),
         ).toThrow();
     });
 });

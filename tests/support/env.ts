@@ -4,7 +4,8 @@ import type { AppConfigEnvVar } from '../../src/types';
  * 虚拟的 app config
  */
 export const validAppConfig: Required<AppConfigEnvVar> = {
-    API_TOKEN: 'test_token',
+    // API_TOKEN 与 SIGN_SECRET 都要求 16-64 位
+    API_TOKEN: 'test_api_token_0123456789abcdef',
     SIGN_SECRET: 'testsignsecret1234',
     ENABLED_CHANNELS: 'wechat,wecom,smtp',
     DEFAULT_CHANNEL: 'wecom',
